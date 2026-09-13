@@ -1,0 +1,19 @@
+#ifndef STUTTER_CONSTANTS_H
+#define STUTTER_CONSTANTS_H
+
+#include <string_view>
+
+constexpr std::string_view STUTTER_DISPLAY_NAME = "@PROJECT_DISPLAY_NAME@";
+constexpr std::string_view STUTTER_DESCRIPTION = "@PROJECT_DESCRIPTION@";
+constexpr std::string_view STUTTER_REPO = "@PROJECT_REPO@";
+constexpr std::string_view STUTTER_AUTHOR = "@PROJECT_AUTHOR@";
+
+constexpr int STUTTER_VERSION_MAJOR = @PROJECT_VERSION_MAJOR@;
+constexpr int STUTTER_VERSION_MINOR = @PROJECT_VERSION_MINOR@;
+constexpr int STUTTER_VERSION_PATCH = @PROJECT_VERSION_PATCH@;
+constexpr std::string_view STUTTER_VERSION_STR = "@PROJECT_VERSION@";
+
+constexpr std::string_view STUTTER_OPERATING_SYSTEM = "@CMAKE_SYSTEM_NAME@";
+constexpr std::string_view STUTTER_BUILD_TYPE = "@CMAKE_BUILD_TYPE@";
+
+#endif // STUTTER_CONSTANTS_H
