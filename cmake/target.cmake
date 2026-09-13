@@ -17,6 +17,7 @@ target_link_libraries(
     "${PROJECT_NAME}" PRIVATE
     Cutter::Cutter
     Rizin::Core
+    toml11::toml11
 )
 
 set(CUTTER_INSTALL_PLUGDIR "${Cutter_USER_PLUGINDIR}" CACHE STRING "Directory to install Cutter plugin into")
