@@ -1,7 +1,7 @@
 include(FetchContent)
 
-find_package(Cutter QUIET)
-find_package(Rizin QUIET COMPONENTS Core)
+find_package(Cutter REQUIRED)
+find_package(Rizin REQUIRED)
 
 find_package(toml11 QUIET)
 if(NOT toml11_FOUND)
