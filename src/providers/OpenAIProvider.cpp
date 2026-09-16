@@ -41,7 +41,7 @@ QUrl endpointFor(QUrl baseUrl) {
     return baseUrl;
 }
 
-QJsonObject requestBody(const ChatRequest& request) {
+QJsonObject requestBody(const ChatRequest& request, bool includeStreamUsage) {
     QJsonArray messages;
     for (const ChatMessage& message : request.messages) {
         QJsonObject object {
@@ -74,9 +74,14 @@ QJsonObject requestBody(const ChatRequest& request) {
         {QStringLiteral("model"), request.model},
         {QStringLiteral("messages"), messages},
         {QStringLiteral("stream"), true},
-        {QStringLiteral("stream_options"), QJsonObject {{QStringLiteral("include_usage"), true}}},
         {QStringLiteral("max_tokens"), request.maxTokens}
     };
+    if (includeStreamUsage) {
+        body.insert(
+            QStringLiteral("stream_options"),
+            QJsonObject {{QStringLiteral("include_usage"), true}}
+        );
+    }
     if (request.temperature >= 0.0) {
         body.insert(QStringLiteral("temperature"), request.temperature);
     }
@@ -125,8 +130,16 @@ struct OpenAIProvider::RequestState {
     bool failed = false;
 };
 
-OpenAIProvider::OpenAIProvider(QString apiKey, QUrl baseUrl, QObject* parent)
-    : Provider(parent), apiKey_(std::move(apiKey)), baseUrl_(endpointFor(std::move(baseUrl))), network_(this) {}
+OpenAIProvider::OpenAIProvider(
+    QString apiKey,
+    QUrl baseUrl,
+    bool includeStreamUsage,
+    QObject* parent
+) : Provider(parent),
+    apiKey_(std::move(apiKey)),
+    baseUrl_(endpointFor(std::move(baseUrl))),
+    includeStreamUsage_(includeStreamUsage),
+    network_(this) {}
 
 OpenAIProvider::~OpenAIProvider() = default;
 
@@ -148,7 +161,7 @@ QString OpenAIProvider::send(const ChatRequest& request) {
     networkRequest.setRawHeader("Authorization", QByteArray("Bearer ") + apiKey_.toUtf8());
     QNetworkReply* reply = network_.post(
         networkRequest,
-        QJsonDocument(requestBody(request)).toJson(QJsonDocument::Compact)
+        QJsonDocument(requestBody(request, includeStreamUsage_)).toJson(QJsonDocument::Compact)
     );
     auto state = std::make_unique<RequestState>();
     state->id = id;

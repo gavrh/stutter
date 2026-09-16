@@ -13,6 +13,9 @@ std::unique_ptr<Provider> ProviderFactory::create(
     if (config.providerId == QStringLiteral("openai")) {
         return std::make_unique<OpenAIProvider>(apiKey, config.endpoint);
     }
+    if (config.providerId == QStringLiteral("openrouter")) {
+        return std::make_unique<OpenAIProvider>(apiKey, config.endpoint, false);
+    }
     if (config.providerId == QStringLiteral("anthropic")) {
         return std::make_unique<AnthropicProvider>(
             apiKey,

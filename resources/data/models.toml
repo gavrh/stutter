@@ -125,3 +125,180 @@ max_output_tokens = 128000
 capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
 efforts = ["low", "medium", "high", "xhigh", "max"]
 default_effort = "medium"
+
+[[providers]]
+id = "openrouter"
+name = "Free (OpenRouter)"
+default_model = "cohere/north-mini-code:free"
+default_endpoint = "https://openrouter.ai/api/v1/chat/completions"
+
+[[providers.models]]
+id = "cohere/north-mini-code:free"
+name = "Cohere: North Mini Code (free)"
+context_window = 256000
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "dots-studio/dots-3-note-preview:free"
+name = "Dots Studio: Dots3-Note Preview (free)"
+context_window = 512000
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "vision", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "google/gemma-4-26b-a4b-it:free"
+name = "Google: Gemma 4 26B A4B (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "vision", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "google/gemma-4-31b-it:free"
+name = "Google: Gemma 4 31B (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "vision", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "inclusionai/ling-3.0-flash-fin:free"
+name = "inclusionAI: Ling 3.0 Flash Fin (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "inclusionai/ling-3.0-flash-sante:free"
+name = "inclusionAI: Ling 3.0 Flash Sante (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "inclusionai/ling-3.0-flash-vl:free"
+name = "inclusionAI: Ling 3.0 Flash VL (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "vision", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "liquid/lfm-2.5-2.6b:free"
+name = "LiquidAI: LFM2.5-2.6B (free)"
+context_window = 65536
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "nex-agi/nex-n2.5-mini:free"
+name = "Nex AGI: Nex-N2.5-Mini (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "vision", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "nex-agi/nex-n2.5-pro:free"
+name = "Nex AGI: Nex-N2.5-Pro (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "vision", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free"
+name = "NVIDIA: Nemotron 3 Nano Omni (free)"
+context_window = 256000
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "vision", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "nvidia/nemotron-3-super-120b-a12b:free"
+name = "NVIDIA: Nemotron 3 Super (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "nvidia/nemotron-3-ultra-550b-a55b:free"
+name = "NVIDIA: Nemotron 3 Ultra (free)"
+context_window = 1000000
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "nvidia/nemotron-3.5-lightning:free"
+name = "NVIDIA: Nemotron 3.5 Lightning (free)"
+context_window = 1000000
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "poolside/laguna-s-2.1:free"
+name = "Poolside: Laguna S 2.1 (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "poolside/laguna-xs-2.1:free"
+name = "Poolside: Laguna XS 2.1 (free)"
+context_window = 262144
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "thinkingmachines/inkling-small:free"
+name = "Thinking Machines: Inkling Small (free)"
+context_window = 1048576
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "vision", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "thinkingmachines/inkling:free"
+name = "Thinking Machines: Inkling (free)"
+context_window = 1048576
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "vision", "reasoning", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers.models]]
+id = "z-ai/glm-5.2:free"
+name = "Z.ai: GLM 5.2 (free)"
+context_window = 32768
+max_output_tokens = 8192
+capabilities = ["text", "streaming", "reasoning"]
+efforts = []
+default_effort = ""

@@ -54,8 +54,9 @@ SettingsDialog::SettingsDialog(
     auto* providerForm = new QFormLayout;
     providerBox_ = new QComboBox(this);
     providerBox_->addItem(QStringLiteral("OpenAI"), QStringLiteral("openai"));
-    providerBox_->addItem(QStringLiteral("Anthropic"), QStringLiteral("anthropic"));
     providerBox_->addItem(QStringLiteral("Codex (ChatGPT)"), QStringLiteral("codex"));
+    providerBox_->addItem(QStringLiteral("Anthropic"), QStringLiteral("anthropic"));
+    providerBox_->addItem(QStringLiteral("Free (OpenRouter)"), QStringLiteral("openrouter"));
     modelBox_ = new QComboBox(this);
     effortBox_ = new QComboBox(this);
     apiKeyEdit_ = new QLineEdit(this);

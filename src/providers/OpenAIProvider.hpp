@@ -17,6 +17,7 @@ public:
     explicit OpenAIProvider(
         QString apiKey,
         QUrl baseUrl = {},
+        bool includeStreamUsage = true,
         QObject* parent = nullptr
     );
     ~OpenAIProvider() override;
@@ -35,6 +36,7 @@ private:
 
     QString apiKey_;
     QUrl baseUrl_;
+    bool includeStreamUsage_ = true;
     QNetworkAccessManager network_;
     std::unordered_map<QNetworkReply*, std::unique_ptr<RequestState>> requests_;
 };
