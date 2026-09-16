@@ -10,13 +10,14 @@ set_target_properties("${PROJECT_NAME}" PROPERTIES
 
 target_include_directories(
     "${PROJECT_NAME}" PRIVATE
-    "${CMAKE_CURRENT_SOURCE_DIR}/include"
+    "${CMAKE_CURRENT_SOURCE_DIR}/src"
     "${CMAKE_CURRENT_BINARY_DIR}/generated"
 )
 target_link_libraries(
     "${PROJECT_NAME}" PRIVATE
     Cutter::Cutter
     Rizin::Core
+    nlohmann_json::nlohmann_json
     toml11::toml11
 )
 
