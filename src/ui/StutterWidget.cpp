@@ -1,6 +1,5 @@
-#include <ui.h>
+#include <ui/StutterWidget.hpp>
 #include <constants.h>
-#include <model.h>
 
 #include <QAbstractTextDocumentLayout>
 #include <QComboBox>
@@ -37,7 +36,7 @@ QBoxLayout* Window::headerLayout() {
 QBoxLayout* Window::responseLayout() {
     QBoxLayout* layout = new QBoxLayout(QBoxLayout::Direction::LeftToRight);
     auto* view = new QTextBrowser(this->content);
-    QString response = QString("# testing");
+    QString response = QStringLiteral("# Testing");
 
     view->setMarkdown(response);
     layout->addWidget(view);
@@ -47,10 +46,10 @@ QBoxLayout* Window::responseLayout() {
 QBoxLayout* Window::selectionLayout() {
     QBoxLayout* layout = new QBoxLayout(QBoxLayout::Direction::LeftToRight);
 
-    QComboBox* modelBox = new QComboBox(this->content);
-    for (const auto &model : models) {
-        modelBox->addItem(QString(model.name.data()));
-    }
+    // QComboBox* modelBox = new QComboBox(this->content);
+    // for (const auto &model : models) {
+    //     modelBox->addItem(QString(model.name.data()));
+    // }
 
     QComboBox* effortBox = new QComboBox(this->content);
     effortBox->addItem(QStringLiteral("Max"));
@@ -64,7 +63,7 @@ QBoxLayout* Window::selectionLayout() {
     modeBox->addItem(QStringLiteral("Plan"));
     modeBox->addItem(QStringLiteral("Teach"));
 
-    layout->addWidget(modelBox);
+    // layout->addWidget(modelBox);
     layout->addWidget(effortBox);
     layout->addWidget(modeBox);
     return layout;
@@ -81,12 +80,10 @@ QBoxLayout* Window::inputLayout() {
 
 QBoxLayout* Window::footerLayout() {
     QBoxLayout* layout = new QBoxLayout(QBoxLayout::Direction::LeftToRight);
-    QLabel* current = new QLabel(QString("Current Function"), this->content);
     QLabel* usage = new QLabel(QString("120k (25%)"), this->content);
     QLabel* version = new QLabel(QString(STUTTER_VERSION_STR.data()), this->content);
 
-    layout->addWidget(current, 1, Qt::AlignLeft);
-    layout->addWidget(usage, 0, Qt::AlignRight);
+    layout->addWidget(usage, 1, Qt::AlignLeft);
     layout->addWidget(version, 0, Qt::AlignRight);
     return layout;
 }

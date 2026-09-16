@@ -1,7 +1,5 @@
-#ifndef STUTTER_PROVIDER_H
-#define STUTTER_PROVIDER_H
+#pragma once
 
-#include <string>
 #include <memory>
 
 enum class ProviderType {
@@ -33,5 +31,3 @@ class Anthropic : public Provider {
         std::string_view name() const override { return "Anthropic"; };
 
 };
-
-#endif // STUTTER_PROVIDER_H

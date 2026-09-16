@@ -1,5 +1,4 @@
-#ifndef STUTTER_UI_H
-#define STUTTER_UI_H
+#pragma once
 
 #include <CutterPlugin.h>
 #include <QBoxLayout>
@@ -45,5 +44,3 @@ class CustomTextEdit : public QTextEdit {
         int minimumContentHeight() const;
         int documentHeight() const;
 };
-
-#endif // STUTTER_UI_H

@@ -1,4 +1,0 @@
-#ifndef STUTTER_PHONE_H
-#define STUTTER_PHONE_H
-
-#endif // STUTTER_PHONE_H

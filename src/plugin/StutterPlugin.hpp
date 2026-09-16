@@ -1,5 +1,4 @@
-#ifndef STUTTER_STUTTER_H
-#define STUTTER_STUTTER_H
+#pragma once
 
 #include <constants.h>
 #include <CutterPlugin.h>
@@ -21,5 +20,3 @@ class Stutter : public QObject, public CutterPlugin {
         QString getDescription() const override { return QString(STUTTER_DESCRIPTION.data()); }
         QString getVersion() const override { return QString(STUTTER_VERSION_STR.data()); }
 };
-
-#endif // STUTTER_STUTTER_H

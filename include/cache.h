@@ -1,4 +1,0 @@
-#ifndef STUTTER_CACHE_H
-#define STUTTER_CACHE_H
-
-#endif // STUTTER_CACHE_H

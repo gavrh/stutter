@@ -1,4 +1,0 @@
-#ifndef STUTTER_HARNESS_H
-#define STUTTER_HARNESS_H
-
-#endif // STUTTER_HARNESS_H
