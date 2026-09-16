@@ -6,6 +6,9 @@ Stutter adds an AI chat panel to Cutter for asking questions about the binary yo
 
 ![Stutter in Cutter](assets/screenshot.png)
 
+> [!WARNING]
+> Stutter is under active development and is not ready for general use. Features are incomplete and may change or break without notice.
+
 ## Requirements
 
 - Cutter
