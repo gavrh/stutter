@@ -1,6 +1,6 @@
 #pragma once
 
-#include <providers/ProviderTypes.hpp>
+#include <domain/ProviderConfig.hpp>
 
 #include <memory>
 
@@ -9,5 +9,8 @@ class Provider;
 
 class ProviderFactory {
 public:
-    static std::unique_ptr<Provider> create(const ProviderConfig& config);
+    static std::unique_ptr<Provider> create(
+        const stutter::ProviderConfig& config,
+        const QString& apiKey
+    );
 };

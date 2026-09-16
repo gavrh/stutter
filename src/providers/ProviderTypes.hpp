@@ -1,5 +1,7 @@
 #pragma once
 
+#include <domain/Usage.hpp>
+
 #include <QJsonObject>
 #include <QMetaType>
 #include <QString>
@@ -8,7 +10,8 @@
 
 enum class ProviderType {
     OpenAI,
-    Anthropic
+    Anthropic,
+    Codex
 };
 
 enum class MessageRole {
@@ -42,14 +45,12 @@ struct ChatRequest {
     QString model;
     QVector<ChatMessage> messages;
     QVector<ToolDefinition> tools;
+    QString effort;
     int maxTokens = 4096;
     double temperature = -1.0;
 };
 
-struct TokenUsage {
-    qint64 inputTokens = 0;
-    qint64 outputTokens = 0;
-};
+using TokenUsage = stutter::Usage;
 
 struct ChatResponse {
     QString content;
@@ -83,13 +84,6 @@ struct ProviderEvent {
     TokenUsage usage;
     QString stopReason;
     ProviderError error;
-};
-
-struct ProviderConfig {
-    ProviderType type = ProviderType::OpenAI;
-    QString apiKey;
-    QUrl baseUrl;
-    QString anthropicVersion = QStringLiteral("2023-06-01");
 };
 
 Q_DECLARE_METATYPE(ChatResponse)
