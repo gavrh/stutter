@@ -1,18 +1,23 @@
 #include <plugin/StutterPlugin.hpp>
-#include <ui/StutterWidget.hpp>
+#include <plugin/StutterContext.hpp>
+
+#include <ui/ChatWidget.hpp>
 
 #include <MainWindow.h>
-#include <QTimer>
 
 Stutter::Stutter() = default;
 
 Stutter::~Stutter() = default;
 
 void Stutter::setupPlugin() {
-    new Stutter();
+    if (!context_) {
+        context_ = new StutterContext(this);
+    }
 }
 
 void Stutter::setupInterface(MainWindow* main) {
-    Window* win = new Window(main);
-    main->addPluginDockWidget(win);
+    if (!context_) {
+        setupPlugin();
+    }
+    main->addPluginDockWidget(context_->createChatWidget(main));
 }
