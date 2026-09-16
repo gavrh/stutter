@@ -107,6 +107,18 @@ ChatWidget::ChatWidget(MainWindow* mainWindow) : CutterDockWidget(mainWindow) {
     messageLayout_->setSpacing(8);
     messageLayout_->addStretch();
     messageScroll_->setWidget(messageContainer_);
+    QScrollBar* scrollBar = messageScroll_->verticalScrollBar();
+    connect(scrollBar, &QScrollBar::valueChanged, this, [this](int) {
+        if (adjustingScroll_) return;
+        followStreaming_ = isNearBottom();
+    });
+    connect(scrollBar, &QScrollBar::rangeChanged, this, [this](int, int) {
+        if (!followStreaming_) return;
+        adjustingScroll_ = true;
+        QScrollBar* bar = messageScroll_->verticalScrollBar();
+        bar->setValue(bar->maximum());
+        adjustingScroll_ = false;
+    });
 
     auto* chatInput = new ChatInput(content);
     input_ = chatInput;
@@ -131,14 +143,21 @@ ChatWidget::ChatWidget(MainWindow* mainWindow) : CutterDockWidget(mainWindow) {
     connect(sendButton_, &QPushButton::clicked, this, &ChatWidget::submitInput);
     connect(stopButton_, &QPushButton::clicked, this, &ChatWidget::stopRequested);
     connect(settingsButton, &QToolButton::clicked, this, &ChatWidget::settingsRequested);
-    connect(clearButton, &QToolButton::clicked, this, &ChatWidget::clearMessages);
+    connect(clearButton, &QToolButton::clicked, this, [this] {
+        clearMessages();
+        emit conversationCleared();
+    });
 }
 
 ChatMessageWidget* ChatWidget::addMessage(int kind, const QString& content) {
     auto* message = new ChatMessageWidget(static_cast<ChatMessageKind>(kind), content, messageContainer_);
-    messageLayout_->insertWidget(messageLayout_->count() - 1, message);
-    scrollToBottom();
+    messageLayout_->addWidget(message);
     return message;
+}
+
+void ChatWidget::removeMessage(ChatMessageWidget* message) {
+    messageLayout_->removeWidget(message);
+    message->deleteLater();
 }
 
 ChatMessageWidget* ChatWidget::addUserMessage(const QString& content) {
@@ -154,18 +173,23 @@ ChatMessageWidget* ChatWidget::beginAssistantMessage() {
 
 void ChatWidget::appendAssistantDelta(const QString& delta) {
     beginAssistantMessage()->appendContent(delta);
-    scrollToBottom();
 }
 
 void ChatWidget::finishAssistantMessage() {
     streamingMessage_ = nullptr;
     setBusy(false);
+    QTimer::singleShot(0, this, [this] { followStreaming_ = false; });
 }
 
 ChatMessageWidget* ChatWidget::addErrorMessage(const QString& content) {
+    if (streamingMessage_ && streamingMessage_->content().isEmpty()) {
+        removeMessage(streamingMessage_);
+    }
     streamingMessage_ = nullptr;
     setBusy(false);
-    return addMessage(static_cast<int>(ChatMessageKind::Error), content);
+    ChatMessageWidget* message = addMessage(static_cast<int>(ChatMessageKind::Error), content);
+    QTimer::singleShot(0, this, [this] { followStreaming_ = false; });
+    return message;
 }
 
 ChatMessageWidget* ChatWidget::addToolMessage(const QString& toolName, const QString& content) {
@@ -176,7 +200,7 @@ ChatMessageWidget* ChatWidget::addToolMessage(const QString& toolName, const QSt
 }
 
 void ChatWidget::setBusy(bool busy) {
-    input_->setEnabled(!busy);
+    busy_ = busy;
     sendButton_->setVisible(!busy);
     stopButton_->setVisible(busy);
 }
@@ -188,23 +212,24 @@ void ChatWidget::setUsageText(const QString& text) {
 void ChatWidget::clearMessages() {
     streamingMessage_ = nullptr;
     while (messageLayout_->count() > 1) {
-        QLayoutItem* item = messageLayout_->takeAt(0);
+        QLayoutItem* item = messageLayout_->takeAt(messageLayout_->count() - 1);
         if (item->widget()) item->widget()->deleteLater();
         delete item;
     }
+    followStreaming_ = false;
 }
 
 void ChatWidget::submitInput() {
     const QString message = input_->toPlainText().trimmed();
-    if (message.isEmpty() || !input_->isEnabled()) return;
+    if (message.isEmpty() || busy_) return;
     input_->clear();
+    followStreaming_ = true;
     addUserMessage(message);
     emit messageSubmitted(message);
 }
 
-void ChatWidget::scrollToBottom() {
-    QTimer::singleShot(0, messageScroll_->verticalScrollBar(), [this] {
-        QScrollBar* bar = messageScroll_->verticalScrollBar();
-        bar->setValue(bar->maximum());
-    });
+bool ChatWidget::isNearBottom() const {
+    QScrollBar* bar = messageScroll_->verticalScrollBar();
+    const int margin = qMax(24, fontMetrics().height() * 2);
+    return bar->maximum() - bar->value() <= margin;
 }

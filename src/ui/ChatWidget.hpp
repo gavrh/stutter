@@ -33,11 +33,13 @@ signals:
     void messageSubmitted(const QString& message);
     void stopRequested();
     void settingsRequested();
+    void conversationCleared();
 
 private:
     ChatMessageWidget* addMessage(int kind, const QString& content);
+    void removeMessage(ChatMessageWidget* message);
     void submitInput();
-    void scrollToBottom();
+    bool isNearBottom() const;
 
     AnalysisContextWidget* analysisContext_;
     QScrollArea* messageScroll_;
@@ -48,4 +50,7 @@ private:
     QPushButton* stopButton_;
     QLabel* usageLabel_;
     ChatMessageWidget* streamingMessage_ = nullptr;
+    bool busy_ = false;
+    bool followStreaming_ = false;
+    bool adjustingScroll_ = false;
 };

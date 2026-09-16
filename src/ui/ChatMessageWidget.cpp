@@ -3,6 +3,7 @@
 #include <QAbstractTextDocumentLayout>
 #include <QFrame>
 #include <QLabel>
+#include <QResizeEvent>
 #include <QTextBrowser>
 #include <QTextDocument>
 #include <QVBoxLayout>
@@ -27,32 +28,45 @@ ChatMessageWidget::ChatMessageWidget(
 ) : QWidget(parent), kind_(kind), content_(content) {
     setObjectName(QStringLiteral("chatMessage"));
     auto* layout = new QVBoxLayout(this);
-    layout->setContentsMargins(10, 8, 10, 8);
-    layout->setSpacing(4);
+    layout->setContentsMargins(0, 8, 0, 8);
+    layout->setSpacing(6);
 
     roleLabel_ = new QLabel(titleFor(kind), this);
     QFont titleFont = roleLabel_->font();
     titleFont.setBold(true);
     roleLabel_->setFont(titleFont);
 
-    contentView_ = new QTextBrowser(this);
-    contentView_->setFrameShape(QFrame::NoFrame);
-    contentView_->setOpenExternalLinks(true);
-    contentView_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    contentView_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
-    contentView_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
-    contentView_->document()->setDocumentMargin(0);
-
-    layout->addWidget(roleLabel_);
-    layout->addWidget(contentView_);
-    connect(
-        contentView_->document()->documentLayout(),
-        &QAbstractTextDocumentLayout::documentSizeChanged,
-        this,
-        [this](const QSizeF& size) {
-            contentView_->setFixedHeight(qMax(24, qCeil(size.height()) + 2));
-        }
-    );
+    if (kind_ == ChatMessageKind::User) {
+        roleLabel_->hide();
+        contentBrowser_ = new QTextBrowser(this);
+        contentBrowser_->setFrameShape(QFrame::NoFrame);
+        contentBrowser_->setOpenExternalLinks(true);
+        contentBrowser_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        contentBrowser_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+        contentBrowser_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        contentBrowser_->document()->setDocumentMargin(14);
+        layout->addWidget(contentBrowser_);
+        connect(
+            contentBrowser_->document()->documentLayout(),
+            &QAbstractTextDocumentLayout::documentSizeChanged,
+            this,
+            [this](const QSizeF& size) {
+                contentBrowser_->setFixedHeight(qMax(24, qCeil(size.height()) + 2));
+            }
+        );
+    } else {
+        roleLabel_->setContentsMargins(14, 0, 14, 0);
+        layout->addWidget(roleLabel_);
+        contentLabel_ = new QLabel(this);
+        contentLabel_->setContentsMargins(14, 2, 14, 2);
+        contentLabel_->setWordWrap(true);
+        contentLabel_->setTextInteractionFlags(Qt::TextBrowserInteraction);
+        contentLabel_->setOpenExternalLinks(true);
+        QSizePolicy contentPolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+        contentPolicy.setHeightForWidth(true);
+        contentLabel_->setSizePolicy(contentPolicy);
+        layout->addWidget(contentLabel_);
+    }
     render();
 }
 
@@ -67,10 +81,28 @@ void ChatMessageWidget::appendContent(const QString& content) {
 }
 
 void ChatMessageWidget::render() {
-    if (kind_ == ChatMessageKind::Assistant) {
-        contentView_->setMarkdown(content_);
+    if (kind_ == ChatMessageKind::User) {
+        QString body = content_.toHtmlEscaped();
+        body.replace(QLatin1Char('\n'), QStringLiteral("<br>"));
+        contentBrowser_->setHtml(
+            QStringLiteral("<b>%1</b><br>%2").arg(titleFor(kind_), body)
+        );
+        updateDocumentWidth();
+    } else if (kind_ == ChatMessageKind::Assistant) {
+        contentLabel_->setTextFormat(Qt::MarkdownText);
+        contentLabel_->setText(content_);
     } else {
-        contentView_->setPlainText(content_);
+        contentLabel_->setTextFormat(Qt::PlainText);
+        contentLabel_->setText(content_);
     }
-    contentView_->document()->adjustSize();
+}
+
+void ChatMessageWidget::resizeEvent(QResizeEvent* event) {
+    QWidget::resizeEvent(event);
+    if (contentBrowser_) updateDocumentWidth();
+}
+
+void ChatMessageWidget::updateDocumentWidth() {
+    const int width = contentBrowser_->viewport()->width();
+    if (width > 0) contentBrowser_->document()->setTextWidth(width);
 }

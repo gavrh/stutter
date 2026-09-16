@@ -3,6 +3,7 @@
 #include <QWidget>
 
 class QLabel;
+class QResizeEvent;
 class QTextBrowser;
 
 enum class ChatMessageKind {
@@ -27,11 +28,16 @@ public:
     void setContent(const QString& content);
     void appendContent(const QString& content);
 
+protected:
+    void resizeEvent(QResizeEvent* event) override;
+
 private:
     void render();
+    void updateDocumentWidth();
 
     ChatMessageKind kind_;
     QString content_;
     QLabel* roleLabel_;
-    QTextBrowser* contentView_;
+    QLabel* contentLabel_ = nullptr;
+    QTextBrowser* contentBrowser_ = nullptr;
 };
