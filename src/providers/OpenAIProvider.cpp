@@ -80,6 +80,9 @@ QJsonObject requestBody(const ChatRequest& request) {
     if (request.temperature >= 0.0) {
         body.insert(QStringLiteral("temperature"), request.temperature);
     }
+    if (!request.effort.isEmpty()) {
+        body.insert(QStringLiteral("reasoning_effort"), request.effort);
+    }
     if (!request.tools.isEmpty()) {
         QJsonArray tools;
         for (const ToolDefinition& tool : request.tools) {

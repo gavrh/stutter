@@ -77,6 +77,12 @@ QJsonObject requestBody(const ChatRequest& request) {
     };
     if (!systemParts.isEmpty()) body.insert(QStringLiteral("system"), systemParts.join(QLatin1Char('\n')));
     if (request.temperature >= 0.0) body.insert(QStringLiteral("temperature"), request.temperature);
+    if (!request.effort.isEmpty()) {
+        body.insert(
+            QStringLiteral("output_config"),
+            QJsonObject {{QStringLiteral("effort"), request.effort}}
+        );
+    }
     if (!request.tools.isEmpty()) {
         QJsonArray tools;
         for (const ToolDefinition& tool : request.tools) {

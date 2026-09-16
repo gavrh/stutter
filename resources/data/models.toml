@@ -1,0 +1,127 @@
+version = 1
+
+[[providers]]
+id = "openai"
+name = "OpenAI"
+default_model = "gpt-6-astra"
+default_endpoint = "https://api.openai.com/"
+
+[[providers.models]]
+id = "gpt-6-astra"
+name = "GPT-6 Astra"
+context_window = 1050000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["low", "medium", "high", "xhigh", "max"]
+default_effort = "medium"
+
+[[providers.models]]
+id = "gpt-5.6-sol"
+name = "GPT-5.6 Sol"
+context_window = 1050000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["none", "low", "medium", "high", "xhigh", "max"]
+default_effort = "medium"
+
+[[providers.models]]
+id = "gpt-5.6-terra"
+name = "GPT-5.6 Terra"
+context_window = 1050000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["none", "low", "medium", "high", "xhigh", "max"]
+default_effort = "medium"
+
+[[providers.models]]
+id = "gpt-5.6-luna"
+name = "GPT-5.6 Luna"
+context_window = 1050000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["none", "low", "medium", "high", "xhigh", "max"]
+default_effort = "medium"
+
+[[providers]]
+id = "anthropic"
+name = "Anthropic"
+default_model = "claude-fable-5-1"
+default_endpoint = "https://api.anthropic.com/"
+
+[[providers.models]]
+id = "claude-fable-5-1"
+name = "Claude Fable 5.1"
+context_window = 1000000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["low", "medium", "high", "xhigh", "max"]
+default_effort = "high"
+
+[[providers.models]]
+id = "claude-opus-5"
+name = "Claude Opus 5"
+context_window = 1000000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["low", "medium", "high", "xhigh", "max"]
+default_effort = "high"
+
+[[providers.models]]
+id = "claude-sonnet-5"
+name = "Claude Sonnet 5"
+context_window = 1000000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["low", "medium", "high", "xhigh", "max"]
+default_effort = "high"
+
+[[providers.models]]
+id = "claude-haiku-4-5-20251001"
+name = "Claude Haiku 4.5"
+context_window = 200000
+max_output_tokens = 64000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = []
+default_effort = ""
+
+[[providers]]
+id = "codex"
+name = "Codex (ChatGPT)"
+default_model = "gpt-6-astra"
+default_endpoint = ""
+
+[[providers.models]]
+id = "gpt-6-astra"
+name = "GPT-6 Astra"
+context_window = 1050000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["low", "medium", "high", "xhigh", "max", "ultra"]
+default_effort = "low"
+
+[[providers.models]]
+id = "gpt-5.6-sol"
+name = "GPT-5.6 Sol"
+context_window = 1050000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["low", "medium", "high", "xhigh", "max", "ultra"]
+default_effort = "low"
+
+[[providers.models]]
+id = "gpt-5.6-terra"
+name = "GPT-5.6 Terra"
+context_window = 1050000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["low", "medium", "high", "xhigh", "max", "ultra"]
+default_effort = "medium"
+
+[[providers.models]]
+id = "gpt-5.6-luna"
+name = "GPT-5.6 Luna"
+context_window = 1050000
+max_output_tokens = 128000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["low", "medium", "high", "xhigh", "max"]
+default_effort = "medium"

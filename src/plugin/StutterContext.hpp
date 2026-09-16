@@ -1,5 +1,8 @@
 #pragma once
 
+#include <config/ModelCatalog.hpp>
+#include <providers/CodexProvider.hpp>
+
 #include <QObject>
 
 class ChatWidget;
@@ -15,8 +18,11 @@ public:
     ChatWidget* createChatWidget(MainWindow* mainWindow);
     ChatWidget* chatWidget() const { return chatWidget_; }
     SettingsDialog* settingsDialog() const { return settingsDialog_; }
+    CodexProvider* codexProvider() { return &codexProvider_; }
 
 private:
+    ModelCatalog modelCatalog_;
+    CodexProvider codexProvider_;
     ChatWidget* chatWidget_ = nullptr;
     SettingsDialog* settingsDialog_ = nullptr;
 };
