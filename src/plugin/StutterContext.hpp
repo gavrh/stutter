@@ -6,6 +6,7 @@
 #include <QObject>
 
 class ChatWidget;
+class ChatController;
 class MainWindow;
 class SettingsDialog;
 
@@ -23,6 +24,7 @@ public:
 private:
     ModelCatalog modelCatalog_;
     CodexProvider codexProvider_;
+    ChatController* chatController_ = nullptr;
     ChatWidget* chatWidget_ = nullptr;
     SettingsDialog* settingsDialog_ = nullptr;
 };

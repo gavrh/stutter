@@ -1,5 +1,6 @@
 #include <plugin/StutterContext.hpp>
 
+#include <chat/ChatController.hpp>
 #include <ui/ChatWidget.hpp>
 #include <ui/SettingsDialog.hpp>
 
@@ -16,6 +17,13 @@ ChatWidget* StutterContext::createChatWidget(MainWindow* mainWindow) {
 
     settingsDialog_ = new SettingsDialog(modelCatalog_, codexProvider_, mainWindow);
     chatWidget_ = new ChatWidget(mainWindow);
+    chatController_ = new ChatController(
+        *chatWidget_,
+        *settingsDialog_,
+        modelCatalog_,
+        codexProvider_,
+        this
+    );
 
     connect(chatWidget_, &ChatWidget::settingsRequested, settingsDialog_, [this] {
         settingsDialog_->show();
