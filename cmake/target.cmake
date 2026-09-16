@@ -17,6 +17,7 @@ target_link_libraries(
     "${PROJECT_NAME}" PRIVATE
     Cutter::Cutter
     Rizin::Core
+    Qt${QT_VERSION_MAJOR}::Network
     nlohmann_json::nlohmann_json
     toml11::toml11
 )
