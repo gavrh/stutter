@@ -1,5 +1,8 @@
 <RCC>
   <qresource prefix="/stutter">
+    <file alias="prompts/system.md">prompts/system.md</file>
+    <file alias="prompts/reverse_engineer.md">prompts/reverse_engineer.md</file>
+    <file alias="prompts/summarize_history.md">prompts/summarize_history.md</file>
     <file alias="data/models.toml">data/models.toml</file>
   </qresource>
 </RCC>
