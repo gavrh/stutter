@@ -1,33 +1,30 @@
 #pragma once
 
-#include <memory>
+#include <providers/ProviderTypes.hpp>
 
-enum class ProviderType {
-    OpenAI,
-    Anthropic
-};
+#include <QObject>
+#include <QString>
 
-class Provider {
+class Provider : public QObject {
+    Q_OBJECT
 
-    public:
-        virtual ~Provider() = default;
-        virtual ProviderType type() const = 0;
-        virtual std::string_view name() const = 0;
+public:
+    explicit Provider(QObject* parent = nullptr) : QObject(parent) {
+        qRegisterMetaType<ChatResponse>();
+        qRegisterMetaType<ProviderError>();
+        qRegisterMetaType<ProviderEvent>();
+    }
+    ~Provider() override = default;
 
-        static std::unique_ptr<Provider> create(ProviderType type);
-};
+    virtual ProviderType type() const = 0;
+    virtual QString name() const = 0;
 
-class OpenAI : public Provider {
+    // Requests are asynchronous. Signals for a request carry the returned ID.
+    virtual QString send(const ChatRequest& request) = 0;
+    virtual void cancel(const QString& requestId) = 0;
 
-    public:
-        ProviderType type() const override { return ProviderType::OpenAI; };
-        std::string_view name() const override { return "OpenAI"; };
-};
-
-class Anthropic : public Provider {
-
-    public: 
-        ProviderType type() const override { return ProviderType::Anthropic; };
-        std::string_view name() const override { return "Anthropic"; };
-
+signals:
+    void eventReceived(const ProviderEvent& event);
+    void finished(const QString& requestId, const ChatResponse& response);
+    void failed(const QString& requestId, const ProviderError& error);
 };
