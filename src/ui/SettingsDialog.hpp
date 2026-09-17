@@ -2,6 +2,10 @@
 
 #include <QDialog>
 
+namespace stutter {
+class SettingsRepository;
+}
+
 class ModelCatalog;
 class CodexProvider;
 class QCheckBox;
@@ -17,6 +21,7 @@ public:
     explicit SettingsDialog(
         const ModelCatalog& modelCatalog,
         CodexProvider& codexProvider,
+        stutter::SettingsRepository* settings = nullptr,
         QWidget* parent = nullptr
     );
 
@@ -25,6 +30,7 @@ public:
     QString model() const;
     void setModel(const QString& model);
     QString effort() const;
+    QString preferredEffort() const { return preferredEffort_; }
     void setEffort(const QString& effort);
     QString apiKey() const;
     void setApiKey(const QString& apiKey);
@@ -36,12 +42,16 @@ public:
     bool allowDebuggerControl() const;
 
 private:
+    void loadSettings();
+    void saveSettings();
+    void applyProviderSettings(const QString& providerId);
     void updateModels();
     void updateEfforts();
     void updateProviderUi();
 
     const ModelCatalog& modelCatalog_;
     CodexProvider& codexProvider_;
+    stutter::SettingsRepository* settingsRepository_;
     QComboBox* providerBox_;
     QComboBox* modelBox_;
     QComboBox* effortBox_;

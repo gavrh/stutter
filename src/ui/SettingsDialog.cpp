@@ -2,6 +2,7 @@
 
 #include <config/ModelCatalog.hpp>
 #include <providers/CodexProvider.hpp>
+#include <storage/SettingsRepository.hpp>
 
 #include <QCheckBox>
 #include <QComboBox>
@@ -44,8 +45,12 @@ QString nearestLowerEffort(const QString& effort, const QStringList& supported) 
 SettingsDialog::SettingsDialog(
     const ModelCatalog& modelCatalog,
     CodexProvider& codexProvider,
+    stutter::SettingsRepository* settings,
     QWidget* parent
-) : QDialog(parent), modelCatalog_(modelCatalog), codexProvider_(codexProvider) {
+) : QDialog(parent),
+    modelCatalog_(modelCatalog),
+    codexProvider_(codexProvider),
+    settingsRepository_(settings) {
     setWindowTitle(tr("Stutter Settings"));
     setModal(false);
     resize(480, 360);
@@ -95,7 +100,10 @@ SettingsDialog::SettingsDialog(
         QDialogButtonBox::Save | QDialogButtonBox::Cancel,
         this
     );
-    connect(buttons, &QDialogButtonBox::accepted, this, &QDialog::accept);
+    connect(buttons, &QDialogButtonBox::accepted, this, [this] {
+        saveSettings();
+        accept();
+    });
     connect(buttons, &QDialogButtonBox::rejected, this, &QDialog::reject);
 
     root->addLayout(providerForm);
@@ -106,7 +114,7 @@ SettingsDialog::SettingsDialog(
 
     connect(providerBox_, &QComboBox::currentIndexChanged, this, [this] {
         updateModels();
-        endpointEdit_->setText(modelCatalog_.defaultEndpoint(providerId()).toString());
+        applyProviderSettings(providerId());
         updateProviderUi();
     });
     connect(modelBox_, &QComboBox::currentIndexChanged, this, &SettingsDialog::updateEfforts);
@@ -118,8 +126,9 @@ SettingsDialog::SettingsDialog(
             codexStatus_->setText(text);
         });
     updateModels();
-    endpointEdit_->setText(modelCatalog_.defaultEndpoint(providerId()).toString());
+    applyProviderSettings(providerId());
     updateProviderUi();
+    loadSettings();
 }
 
 QString SettingsDialog::providerId() const {
@@ -156,8 +165,7 @@ QString SettingsDialog::effort() const { return effortBox_->currentData().toStri
 
 void SettingsDialog::setEffort(const QString& effort) {
     preferredEffort_ = effort;
-    const int index = effortBox_->findData(effort);
-    if (index >= 0) effortBox_->setCurrentIndex(index);
+    updateEfforts();
 }
 QString SettingsDialog::apiKey() const { return apiKeyEdit_->text(); }
 void SettingsDialog::setApiKey(const QString& apiKey) { apiKeyEdit_->setText(apiKey); }
@@ -202,15 +210,12 @@ void SettingsDialog::updateEfforts() {
     for (const QString& supportedEffort : selectedModel.supportedEfforts) {
         effortBox_->addItem(effortName(supportedEffort), supportedEffort);
     }
-    if (preferredEffort_.isEmpty()) preferredEffort_ = selectedModel.defaultEffort;
-    int index = effortBox_->findData(preferredEffort_);
-    if (index < 0) {
-        preferredEffort_ = nearestLowerEffort(
-            preferredEffort_,
-            selectedModel.supportedEfforts
-        );
-        index = effortBox_->findData(preferredEffort_);
+    QString desired = preferredEffort_;
+    if (desired.isEmpty()) desired = selectedModel.defaultEffort;
+    if (!selectedModel.supportedEfforts.contains(desired)) {
+        desired = nearestLowerEffort(desired, selectedModel.supportedEfforts);
     }
+    const int index = effortBox_->findData(desired);
     if (index >= 0) effortBox_->setCurrentIndex(index);
     effortBox_->setEnabled(true);
 }
@@ -227,4 +232,53 @@ void SettingsDialog::updateProviderUi() {
     } else if (!codexSelected) {
         codexProvider_.disconnect();
     }
+}
+
+void SettingsDialog::loadSettings() {
+    if (!settingsRepository_) return;
+    setProviderId(settingsRepository_->value(QStringLiteral("provider"), providerId()));
+    setModel(settingsRepository_->value(QStringLiteral("model"), model()));
+    setEffort(settingsRepository_->value(QStringLiteral("effort"), preferredEffort_));
+    applyProviderSettings(providerId());
+    analysisPermission_->setChecked(
+        settingsRepository_->value(QStringLiteral("permission.analysis")) == QStringLiteral("1")
+    );
+    binaryPermission_->setChecked(
+        settingsRepository_->value(QStringLiteral("permission.binary")) == QStringLiteral("1")
+    );
+    debuggerPermission_->setChecked(
+        settingsRepository_->value(QStringLiteral("permission.debugger")) == QStringLiteral("1")
+    );
+}
+
+void SettingsDialog::saveSettings() {
+    if (!settingsRepository_) return;
+    settingsRepository_->setValue(QStringLiteral("provider"), providerId());
+    settingsRepository_->setValue(QStringLiteral("model"), model());
+    settingsRepository_->setValue(QStringLiteral("effort"), preferredEffort_);
+    settingsRepository_->setValue(QStringLiteral("endpoint.") + providerId(), endpoint());
+    settingsRepository_->setApiKey(providerId(), apiKey());
+    settingsRepository_->setValue(
+        QStringLiteral("permission.analysis"),
+        analysisPermission_->isChecked() ? QStringLiteral("1") : QStringLiteral("0")
+    );
+    settingsRepository_->setValue(
+        QStringLiteral("permission.binary"),
+        binaryPermission_->isChecked() ? QStringLiteral("1") : QStringLiteral("0")
+    );
+    settingsRepository_->setValue(
+        QStringLiteral("permission.debugger"),
+        debuggerPermission_->isChecked() ? QStringLiteral("1") : QStringLiteral("0")
+    );
+}
+
+void SettingsDialog::applyProviderSettings(const QString& providerId) {
+    if (providerId.isEmpty()) return;
+    const QString savedEndpoint = settingsRepository_
+        ? settingsRepository_->value(QStringLiteral("endpoint.") + providerId)
+        : QString();
+    setEndpoint(savedEndpoint.isEmpty()
+        ? modelCatalog_.defaultEndpoint(providerId).toString()
+        : savedEndpoint);
+    setApiKey(settingsRepository_ ? settingsRepository_->apiKey(providerId) : QString());
 }
