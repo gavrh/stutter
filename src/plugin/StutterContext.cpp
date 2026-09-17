@@ -1,6 +1,7 @@
 #include <plugin/StutterContext.hpp>
 
 #include <chat/ChatController.hpp>
+#include <domain/BinaryIdentity.hpp>
 #include <ui/ChatWidget.hpp>
 #include <ui/SettingsDialog.hpp>
 
@@ -15,13 +16,29 @@ ChatWidget* StutterContext::createChatWidget(MainWindow* mainWindow) {
         return chatWidget_;
     }
 
-    settingsDialog_ = new SettingsDialog(modelCatalog_, codexProvider_, mainWindow);
+    if (!database_.isOpen()) {
+        database_.open(stutter::Database::defaultDatabasePath());
+        database_.applyMigrations();
+    }
+
+    settingsDialog_ = new SettingsDialog(
+        modelCatalog_,
+        codexProvider_,
+        &settingsRepository_,
+        mainWindow
+    );
     chatWidget_ = new ChatWidget(mainWindow);
     chatController_ = new ChatController(
         *chatWidget_,
         *settingsDialog_,
         modelCatalog_,
         codexProvider_,
+        binaryRepository_,
+        conversationRepository_,
+        messageRepository_,
+        [mainWindow]() -> stutter::BinaryIdentity {
+            return stutter::BinaryRepository::identityFromPath(mainWindow->getFilename());
+        },
         this
     );
 
