@@ -19,6 +19,7 @@ target_link_libraries(
     Cutter::Cutter
     Rizin::Core
     Qt${QT_VERSION_MAJOR}::Network
+    SQLite3::SQLite3
     nlohmann_json::nlohmann_json
     toml11::toml11
 )
