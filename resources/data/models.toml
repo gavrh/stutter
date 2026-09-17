@@ -127,6 +127,31 @@ efforts = ["low", "medium", "high", "xhigh", "max"]
 default_effort = "medium"
 
 [[providers]]
+id = "deepseek"
+name = "DeepSeek"
+default_model = "deepseek-flash"
+default_endpoint = "https://api.deepseek.com/v1/chat/completions"
+
+[[providers.models]]
+id = "deepseek-flash"
+name = "DeepSeek Flash"
+context_window = 1000000
+max_output_tokens = 384000
+capabilities = ["text", "vision", "reasoning", "streaming", "tools"]
+efforts = ["none", "low", "high", "max"]
+default_effort = "high"
+
+[[providers.models]]
+id = "deepseek-v4-pro"
+name = "DeepSeek V4 Pro"
+context_window = 1000000
+max_output_tokens = 384000
+capabilities = ["text", "reasoning", "streaming", "tools"]
+efforts = ["none", "low", "high", "max"]
+default_effort = "high"
+
+
+[[providers]]
 id = "openrouter"
 name = "Free (OpenRouter)"
 default_model = "cohere/north-mini-code:free"
