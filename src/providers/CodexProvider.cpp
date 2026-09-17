@@ -35,6 +35,10 @@ CodexProvider::CodexProvider(QObject* parent)
         event.textDelta = delta;
         emit eventReceived(event);
     });
+    connect(&session_, &CodexSession::tokenUsage, this, [this](qint64 inputTokens, qint64 outputTokens) {
+        response_.usage.inputTokens = inputTokens;
+        response_.usage.outputTokens = outputTokens;
+    });
     connect(&session_, &CodexSession::turnCompleted, this, [this](const QString& status) {
         if (activeRequestId_.isEmpty()) return;
         if (status != QStringLiteral("completed")) {

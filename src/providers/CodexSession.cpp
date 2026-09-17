@@ -5,14 +5,39 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
+namespace {
+void readTokenUsage(const QJsonObject& object, qint64& inputTokens, qint64& outputTokens) {
+    inputTokens = static_cast<qint64>(object.value(QStringLiteral("inputTokens")).toDouble());
+    outputTokens = static_cast<qint64>(object.value(QStringLiteral("outputTokens")).toDouble());
+}
+}
+
 CodexSession::CodexSession(CodexRpcClient& rpc, QObject* parent)
     : QObject(parent), rpc_(rpc) {
     connect(&rpc_, &CodexRpcClient::notificationReceived, this,
         [this](const QString& method, const QJsonObject& params) {
             if (method == QStringLiteral("item/agentMessage/delta")) {
                 emit textDelta(params.value(QStringLiteral("delta")).toString());
+            } else if (method == QStringLiteral("thread/tokenUsage/updated")) {
+                const QJsonObject info = params.value(QStringLiteral("tokenUsage")).toObject();
+                QJsonObject usage = info.value(QStringLiteral("last")).toObject();
+                if (usage.isEmpty()) {
+                    usage = info.value(QStringLiteral("total")).toObject();
+                }
+                if (usage.isEmpty()) usage = info;
+                qint64 inputTokens = 0;
+                qint64 outputTokens = 0;
+                readTokenUsage(usage, inputTokens, outputTokens);
+                emit tokenUsage(inputTokens, outputTokens);
             } else if (method == QStringLiteral("turn/completed")) {
                 const QJsonObject turn = params.value(QStringLiteral("turn")).toObject();
+                const QJsonObject usage = turn.value(QStringLiteral("usage")).toObject();
+                if (!usage.isEmpty()) {
+                    qint64 inputTokens = 0;
+                    qint64 outputTokens = 0;
+                    readTokenUsage(usage, inputTokens, outputTokens);
+                    emit tokenUsage(inputTokens, outputTokens);
+                }
                 emit turnCompleted(turn.value(QStringLiteral("status")).toString());
             }
         });

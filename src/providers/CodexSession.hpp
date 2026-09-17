@@ -20,6 +20,7 @@ signals:
     void threadStarted(const QString& threadId);
     void turnStarted(const QString& turnId);
     void textDelta(const QString& delta);
+    void tokenUsage(qint64 inputTokens, qint64 outputTokens);
     void turnCompleted(const QString& status);
     void errorOccurred(const QString& message);
 
