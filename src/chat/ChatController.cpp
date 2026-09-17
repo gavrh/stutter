@@ -3,10 +3,15 @@
 #include <config/ModelCatalog.hpp>
 #include <providers/CodexProvider.hpp>
 #include <providers/ProviderFactory.hpp>
+#include <storage/BinaryRepository.hpp>
+#include <storage/ConversationRepository.hpp>
+#include <storage/MessageRepository.hpp>
 #include <ui/ChatWidget.hpp>
 #include <ui/SettingsDialog.hpp>
 
 #include <QJsonDocument>
+
+#include <utility>
 
 namespace {
 QString formatTokenCount(qint64 count) {
@@ -25,16 +30,25 @@ ChatController::ChatController(
     SettingsDialog& settings,
     const ModelCatalog& modelCatalog,
     CodexProvider& codexProvider,
+    stutter::BinaryRepository& binaries,
+    stutter::ConversationRepository& conversations,
+    stutter::MessageRepository& messages,
+    std::function<stutter::BinaryIdentity()> binaryProvider,
     QObject* parent
 ) : QObject(parent),
     widget_(widget),
     settings_(settings),
     modelCatalog_(modelCatalog),
     codexProvider_(codexProvider),
-    conversations_(this) {
+    conversations_(this),
+    binaryProvider_(std::move(binaryProvider)) {
+    conversations_.setRepositories(&binaries, &conversations, &messages);
     connect(&widget_, &ChatWidget::messageSubmitted, this, &ChatController::submit);
     connect(&widget_, &ChatWidget::stopRequested, this, &ChatController::stop);
     connect(&widget_, &ChatWidget::conversationCleared, this, &ChatController::clear);
+    connect(&conversations_, &ConversationService::conversationLoaded, this, [this] {
+        renderConversation();
+    });
 }
 
 ChatController::~ChatController() = default;
@@ -45,9 +59,13 @@ void ChatController::submit(const QString& text) {
         widget_.addErrorMessage(promptBuilder_.error());
         return;
     }
+    if (binaryProvider_) {
+        conversations_.setBinary(binaryProvider_());
+    }
+    conversations_.appendMessage(stutter::MessageRole::User, text);
+    widget_.addUserMessage(text);
     if (!selectProvider()) return;
 
-    conversations_.appendMessage(stutter::MessageRole::User, text);
     const stutter::Model model = selectedModel();
     const ChatContext context = contextBuilder_.build(
         conversations_.messages(),
@@ -76,6 +94,26 @@ void ChatController::clear() {
     conversations_.clear();
     resetRequest();
     widget_.setUsageText({});
+}
+
+void ChatController::renderConversation() {
+    widget_.clearMessages();
+    widget_.setUsageText({});
+    for (const stutter::Message& message : conversations_.messages()) {
+        switch (message.role) {
+        case stutter::MessageRole::User:
+            widget_.addUserMessage(message.content);
+            break;
+        case stutter::MessageRole::Assistant:
+            widget_.addAssistantMessage(message.content);
+            break;
+        case stutter::MessageRole::Tool:
+            widget_.addToolMessage(message.toolName, message.content);
+            break;
+        case stutter::MessageRole::System:
+            break;
+        }
+    }
 }
 
 bool ChatController::selectProvider() {
@@ -161,7 +199,7 @@ void ChatController::handleFinished(const QString& requestId, const ChatResponse
             : tool.rawArguments;
         widget_.addToolMessage(tool.name, arguments);
     }
-    widget_.setUsageText(tr("%1 input / %2 output tokens")
+    widget_.setUsageText(tr("%1 input / %2 output")
         .arg(formatTokenCount(response.usage.inputTokens))
         .arg(formatTokenCount(response.usage.outputTokens)));
     widget_.finishAssistantMessage();

@@ -161,7 +161,12 @@ void ChatWidget::removeMessage(ChatMessageWidget* message) {
 }
 
 ChatMessageWidget* ChatWidget::addUserMessage(const QString& content) {
+    followStreaming_ = true;
     return addMessage(static_cast<int>(ChatMessageKind::User), content);
+}
+
+ChatMessageWidget* ChatWidget::addAssistantMessage(const QString& content) {
+    return addMessage(static_cast<int>(ChatMessageKind::Assistant), content);
 }
 
 ChatMessageWidget* ChatWidget::beginAssistantMessage() {
@@ -223,8 +228,6 @@ void ChatWidget::submitInput() {
     const QString message = input_->toPlainText().trimmed();
     if (message.isEmpty() || busy_) return;
     input_->clear();
-    followStreaming_ = true;
-    addUserMessage(message);
     emit messageSubmitted(message);
 }
 

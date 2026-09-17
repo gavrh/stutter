@@ -20,6 +20,7 @@ public:
 
     AnalysisContextWidget* analysisContextWidget() const { return analysisContext_; }
     ChatMessageWidget* addUserMessage(const QString& content);
+    ChatMessageWidget* addAssistantMessage(const QString& content);
     ChatMessageWidget* beginAssistantMessage();
     void appendAssistantDelta(const QString& delta);
     void finishAssistantMessage();

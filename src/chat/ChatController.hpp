@@ -5,8 +5,11 @@
 #include <chat/HistorySummarizer.hpp>
 #include <chat/PromptBuilder.hpp>
 
+#include <domain/BinaryIdentity.hpp>
+
 #include <QObject>
 
+#include <functional>
 #include <memory>
 
 class ChatWidget;
@@ -14,6 +17,12 @@ class CodexProvider;
 class ModelCatalog;
 class Provider;
 class SettingsDialog;
+
+namespace stutter {
+class BinaryRepository;
+class ConversationRepository;
+class MessageRepository;
+}
 
 class ChatController final : public QObject {
     Q_OBJECT
@@ -24,6 +33,10 @@ public:
         SettingsDialog& settings,
         const ModelCatalog& modelCatalog,
         CodexProvider& codexProvider,
+        stutter::BinaryRepository& binaries,
+        stutter::ConversationRepository& conversations,
+        stutter::MessageRepository& messages,
+        std::function<stutter::BinaryIdentity()> binaryProvider,
         QObject* parent = nullptr
     );
     ~ChatController() override;
@@ -32,6 +45,7 @@ private:
     void submit(const QString& text);
     void stop();
     void clear();
+    void renderConversation();
     bool selectProvider();
     stutter::ProviderConfig providerConfig() const;
     stutter::Model selectedModel() const;
@@ -49,6 +63,7 @@ private:
     ContextBuilder contextBuilder_;
     PromptBuilder promptBuilder_;
     HistorySummarizer historySummarizer_;
+    std::function<stutter::BinaryIdentity()> binaryProvider_;
     std::unique_ptr<Provider> ownedProvider_;
     Provider* provider_ = nullptr;
     QString requestId_;
