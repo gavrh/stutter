@@ -25,6 +25,7 @@ public:
 
     ChatMessageKind kind() const { return kind_; }
     QString content() const { return content_; }
+    void setTitle(const QString& title);
     void setContent(const QString& content);
     void appendContent(const QString& content);
 
@@ -34,6 +35,7 @@ protected:
 private:
     void render();
     void updateDocumentWidth();
+    void updateContentHeight();
 
     ChatMessageKind kind_;
     QString content_;

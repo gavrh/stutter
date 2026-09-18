@@ -28,7 +28,7 @@ ChatMessageWidget::ChatMessageWidget(
 ) : QWidget(parent), kind_(kind), content_(content) {
     setObjectName(QStringLiteral("chatMessage"));
     auto* layout = new QVBoxLayout(this);
-    layout->setContentsMargins(0, 8, 0, 8);
+    layout->setContentsMargins(0, 0, 0, 0);
     layout->setSpacing(6);
 
     roleLabel_ = new QLabel(titleFor(kind), this);
@@ -70,6 +70,10 @@ ChatMessageWidget::ChatMessageWidget(
     render();
 }
 
+void ChatMessageWidget::setTitle(const QString& title) {
+    if (roleLabel_) roleLabel_->setText(title);
+}
+
 void ChatMessageWidget::setContent(const QString& content) {
     content_ = content;
     render();
@@ -95,14 +99,40 @@ void ChatMessageWidget::render() {
         contentLabel_->setTextFormat(Qt::PlainText);
         contentLabel_->setText(content_);
     }
+    updateContentHeight();
 }
 
 void ChatMessageWidget::resizeEvent(QResizeEvent* event) {
     QWidget::resizeEvent(event);
     if (contentBrowser_) updateDocumentWidth();
+    updateContentHeight();
 }
 
 void ChatMessageWidget::updateDocumentWidth() {
     const int width = contentBrowser_->viewport()->width();
     if (width > 0) contentBrowser_->document()->setTextWidth(width);
+}
+
+void ChatMessageWidget::updateContentHeight() {
+    if (!contentLabel_) return;
+    const int width = this->width();
+    if (width <= 0) return;
+
+    const QMargins margins = contentLabel_->contentsMargins();
+    const int textWidth = width - margins.left() - margins.right();
+    if (textWidth <= 0) return;
+
+    QTextDocument document;
+    document.setDefaultFont(contentLabel_->font());
+    document.setDocumentMargin(0);
+    document.setTextWidth(textWidth);
+    if (kind_ == ChatMessageKind::Assistant) {
+        document.setMarkdown(content_);
+    } else {
+        document.setPlainText(content_);
+    }
+
+    const int height = qCeil(document.size().height())
+        + margins.top() + margins.bottom();
+    contentLabel_->setFixedHeight(height);
 }

@@ -49,6 +49,7 @@ private:
     bool selectProvider();
     stutter::ProviderConfig providerConfig() const;
     stutter::Model selectedModel() const;
+    QString assistantTitle() const;
     void connectProvider(Provider& provider);
     void handleEvent(const ProviderEvent& event);
     void handleFinished(const QString& requestId, const ChatResponse& response);

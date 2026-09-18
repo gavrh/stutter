@@ -6,6 +6,7 @@
 #include <storage/BinaryRepository.hpp>
 #include <storage/ConversationRepository.hpp>
 #include <storage/MessageRepository.hpp>
+#include <ui/ChatMessageWidget.hpp>
 #include <ui/ChatWidget.hpp>
 #include <ui/SettingsDialog.hpp>
 
@@ -78,7 +79,7 @@ void ChatController::submit(const QString& text) {
     streamedResponse_.clear();
     cancellationRequested_ = false;
     widget_.setBusy(true);
-    widget_.beginAssistantMessage();
+    widget_.beginAssistantMessage()->setTitle(assistantTitle());
     requestId_ = provider_->send(request);
 }
 
@@ -162,6 +163,20 @@ stutter::ProviderConfig ChatController::providerConfig() const {
         config.maxOutputTokens = static_cast<int>(qMin<qint64>(model.maxOutputTokens, 16384));
     }
     return config;
+}
+
+QString ChatController::assistantTitle() const {
+    const stutter::Model model = selectedModel();
+    QString title = QStringLiteral("Stutter");
+    const QString modelName = model.name.isEmpty() ? settings_.model() : model.name;
+    if (!modelName.isEmpty()) {
+        title += QStringLiteral(" - ") + modelName;
+    }
+    const QString effort = settings_.effort();
+    if (!effort.isEmpty() && effort != QStringLiteral("none")) {
+        title += QStringLiteral(" (") + effort + QStringLiteral(")");
+    }
+    return title;
 }
 
 stutter::Model ChatController::selectedModel() const {
