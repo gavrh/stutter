@@ -54,6 +54,7 @@ CodexProvider::CodexProvider(QObject* parent)
         const QString requestId = activeRequestId_;
         activeRequestId_.clear();
         pendingPrompt_.clear();
+        pendingInstructions_.clear();
         pendingEffort_.clear();
         emit finished(requestId, response_);
     });
@@ -79,9 +80,10 @@ QString CodexProvider::send(const ChatRequest& request) {
 
     activeRequestId_ = requestId;
     pendingPrompt_ = promptFor(request);
+    pendingInstructions_ = instructionsFor(request);
     pendingEffort_ = request.effort;
     response_ = {};
-    session_.startThread(request.model, {});
+    session_.startThread(request.model, {}, pendingInstructions_);
     return requestId;
 }
 
@@ -98,9 +100,21 @@ void CodexProvider::disconnect() {
 QString CodexProvider::promptFor(const ChatRequest& request) const {
     QString prompt;
     for (const ChatMessage& message : request.messages) {
+        if (message.role == MessageRole::System) continue;
         prompt.append(QStringLiteral("## %1\n%2\n\n").arg(roleName(message.role), message.content));
     }
     return prompt.trimmed();
+}
+
+QString CodexProvider::instructionsFor(const ChatRequest& request) const {
+    QString instructions;
+    for (const ChatMessage& message : request.messages) {
+        if (message.role != MessageRole::System) continue;
+        if (message.content.isEmpty()) continue;
+        if (!instructions.isEmpty()) instructions.append(QStringLiteral("\n\n"));
+        instructions.append(message.content);
+    }
+    return instructions;
 }
 
 void CodexProvider::failActive(const QString& message) {
@@ -108,6 +122,7 @@ void CodexProvider::failActive(const QString& message) {
     const QString requestId = activeRequestId_;
     activeRequestId_.clear();
     pendingPrompt_.clear();
+    pendingInstructions_.clear();
     pendingEffort_.clear();
     ProviderError error;
     error.code = QStringLiteral("codex_error");

@@ -17,6 +17,11 @@ CodexSession::CodexSession(CodexRpcClient& rpc, QObject* parent)
     connect(&rpc_, &CodexRpcClient::notificationReceived, this,
         [this](const QString& method, const QJsonObject& params) {
             if (method == QStringLiteral("item/agentMessage/delta")) {
+                const QString itemId = params.value(QStringLiteral("itemId")).toString();
+                if (!itemId.isEmpty() && itemId != agentMessageItemId_) {
+                    if (!agentMessageItemId_.isEmpty()) emit textDelta(QStringLiteral("\n\n"));
+                    agentMessageItemId_ = itemId;
+                }
                 emit textDelta(params.value(QStringLiteral("delta")).toString());
             } else if (method == QStringLiteral("thread/tokenUsage/updated")) {
                 const QJsonObject info = params.value(QStringLiteral("tokenUsage")).toObject();
@@ -43,7 +48,12 @@ CodexSession::CodexSession(CodexRpcClient& rpc, QObject* parent)
         });
 }
 
-void CodexSession::startThread(const QString& model, const QString& workingDirectory) {
+void CodexSession::startThread(
+    const QString& model,
+    const QString& workingDirectory,
+    const QString& developerInstructions
+) {
+    agentMessageItemId_.clear();
     QJsonObject params {
         {QStringLiteral("model"), model},
         {QStringLiteral("approvalPolicy"), QStringLiteral("never")},
@@ -51,6 +61,9 @@ void CodexSession::startThread(const QString& model, const QString& workingDirec
         {QStringLiteral("serviceName"), QStringLiteral("stutter")}
     };
     if (!workingDirectory.isEmpty()) params.insert(QStringLiteral("cwd"), workingDirectory);
+    if (!developerInstructions.isEmpty()) {
+        params.insert(QStringLiteral("developerInstructions"), developerInstructions);
+    }
     rpc_.request(QStringLiteral("thread/start"), params,
         [this](const QJsonObject& result, const QJsonObject& error) {
             if (!error.isEmpty()) {
@@ -68,6 +81,7 @@ void CodexSession::startTurn(const QString& text, const QString& effort) {
         emit errorOccurred(tr("Start a Codex thread before starting a turn"));
         return;
     }
+    agentMessageItemId_.clear();
     QJsonObject params {
         {QStringLiteral("threadId"), threadId_},
         {QStringLiteral("input"), QJsonArray {QJsonObject {

@@ -30,6 +30,7 @@ signals:
 
 private:
     QString promptFor(const ChatRequest& request) const;
+    QString instructionsFor(const ChatRequest& request) const;
     void failActive(const QString& message);
 
     CodexProcess process_;
@@ -38,6 +39,7 @@ private:
     CodexSession session_;
     QString activeRequestId_;
     QString pendingPrompt_;
+    QString pendingInstructions_;
     QString pendingEffort_;
     ChatResponse response_;
 };
