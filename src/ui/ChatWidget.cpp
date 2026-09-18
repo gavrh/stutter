@@ -15,7 +15,6 @@
 #include <QScrollBar>
 #include <QTextEdit>
 #include <QTextDocument>
-#include <QTimer>
 #include <QToolButton>
 #include <QVBoxLayout>
 #include <QtMath>
@@ -104,8 +103,8 @@ ChatWidget::ChatWidget(MainWindow* mainWindow) : CutterDockWidget(mainWindow) {
     messageContainer_ = new QWidget(messageScroll_);
     messageLayout_ = new QVBoxLayout(messageContainer_);
     messageLayout_->setContentsMargins(0, 0, 0, 0);
-    messageLayout_->setSpacing(8);
-    messageLayout_->addStretch();
+    messageLayout_->setSpacing(16);
+    messageLayout_->setAlignment(Qt::AlignBottom);
     messageScroll_->setWidget(messageContainer_);
     QScrollBar* scrollBar = messageScroll_->verticalScrollBar();
     connect(scrollBar, &QScrollBar::valueChanged, this, [this](int) {
@@ -183,7 +182,6 @@ void ChatWidget::appendAssistantDelta(const QString& delta) {
 void ChatWidget::finishAssistantMessage() {
     streamingMessage_ = nullptr;
     setBusy(false);
-    QTimer::singleShot(0, this, [this] { followStreaming_ = false; });
 }
 
 ChatMessageWidget* ChatWidget::addErrorMessage(const QString& content) {
@@ -192,9 +190,7 @@ ChatMessageWidget* ChatWidget::addErrorMessage(const QString& content) {
     }
     streamingMessage_ = nullptr;
     setBusy(false);
-    ChatMessageWidget* message = addMessage(static_cast<int>(ChatMessageKind::Error), content);
-    QTimer::singleShot(0, this, [this] { followStreaming_ = false; });
-    return message;
+    return addMessage(static_cast<int>(ChatMessageKind::Error), content);
 }
 
 ChatMessageWidget* ChatWidget::addToolMessage(const QString& toolName, const QString& content) {
@@ -216,8 +212,8 @@ void ChatWidget::setUsageText(const QString& text) {
 
 void ChatWidget::clearMessages() {
     streamingMessage_ = nullptr;
-    while (messageLayout_->count() > 1) {
-        QLayoutItem* item = messageLayout_->takeAt(messageLayout_->count() - 1);
+    while (messageLayout_->count() > 0) {
+        QLayoutItem* item = messageLayout_->takeAt(0);
         if (item->widget()) item->widget()->deleteLater();
         delete item;
     }
