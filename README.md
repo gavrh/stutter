@@ -1,6 +1,6 @@
 # stutter
 
-Stutter is an AI assistant built directly into Cutter and deeply integrated with it, able to carry out any task for you across the reverse engineering and binary analysis process. Have it work on a target alongside you, ask it for help or even have it teach you, all without leaving Cutter.
+Stutter is an AI assistant built directly into [Cutter](https://cutter.re) and deeply integrated with it, able to carry out any task for you across the reverse engineering and binary analysis process. Have it work on a target alongside you, ask it for help or even have it teach you, all without leaving Cutter.
 
 ![Stutter in Cutter](assets/screenshot.png)
 
@@ -9,10 +9,13 @@ Stutter is an AI assistant built directly into Cutter and deeply integrated with
 
 ## Requirements
 
+- CMake 3.16+
 - Cutter
 - Rizin
 - Qt 6 (or Qt 5)
-- CMake 3.16+
+- SQLite3
+- nlohmann_json
+- toml11
 
 ## Building
 
