@@ -68,7 +68,7 @@ void CodexSession::startThread(
     };
     if (!workingDirectory.isEmpty()) params.insert(QStringLiteral("cwd"), workingDirectory);
     if (!developerInstructions.isEmpty()) {
-        params.insert(QStringLiteral("developerInstructions"), developerInstructions);
+        params.insert(QStringLiteral("baseInstructions"), developerInstructions);
     }
     rpc_.request(QStringLiteral("thread/start"), params,
         [this](const QJsonObject& result, const QJsonObject& error) {
