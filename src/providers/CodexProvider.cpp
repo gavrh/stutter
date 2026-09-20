@@ -3,6 +3,7 @@
 #include <QDateTime>
 #include <QJsonArray>
 #include <QJsonDocument>
+#include <QRegularExpression>
 #include <QStringList>
 #include <QTimer>
 #include <QUuid>
@@ -64,6 +65,16 @@ QString itemSummary(const QJsonObject& item) {
     return parts.join(QLatin1Char('\n'));
 }
 
+QString stripCitations(const QString& text) {
+    static const QRegularExpression pattern(
+        QStringLiteral(R"((?:cite\s*)?turn\d+[a-z]+\d+)"),
+        QRegularExpression::CaseInsensitiveOption
+    );
+    QString result = text;
+    result.remove(pattern);
+    return result;
+}
+
 QString itemResult(const QJsonObject& item) {
     const char* keys[] = {"aggregatedOutput", "output", "result", "text"};
     for (const char* key : keys) {
@@ -97,11 +108,13 @@ CodexProvider::CodexProvider(QObject* parent)
     });
     connect(&session_, &CodexSession::textDelta, this, [this](const QString& delta) {
         if (activeRequestId_.isEmpty()) return;
-        response_.content.append(delta);
+        const QString clean = stripCitations(delta);
+        response_.content.append(clean);
+        if (clean.isEmpty()) return;
         ProviderEvent event;
         event.type = ProviderEventType::TextDelta;
         event.requestId = activeRequestId_;
-        event.textDelta = delta;
+        event.textDelta = clean;
         emit eventReceived(event);
     });
     connect(&session_, &CodexSession::tokenUsage, this, [this](qint64 inputTokens, qint64 outputTokens) {
