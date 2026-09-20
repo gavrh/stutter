@@ -1,5 +1,6 @@
 #pragma once
 
+#include <domain/ToolActivity.hpp>
 #include <providers/ProviderTypes.hpp>
 
 #include <QObject>
@@ -13,6 +14,7 @@ public:
         qRegisterMetaType<ChatResponse>();
         qRegisterMetaType<ProviderError>();
         qRegisterMetaType<ProviderEvent>();
+        qRegisterMetaType<stutter::ToolActivity>();
     }
     ~Provider() override = default;
 
@@ -27,4 +29,7 @@ signals:
     void eventReceived(const ProviderEvent& event);
     void finished(const QString& requestId, const ChatResponse& response);
     void failed(const QString& requestId, const ProviderError& error);
+    void activityStarted(const stutter::ToolActivity& activity);
+    void activityUpdated(const stutter::ToolActivity& activity);
+    void activityFinished(const stutter::ToolActivity& activity);
 };
