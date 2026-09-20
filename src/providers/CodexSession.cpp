@@ -23,6 +23,12 @@ CodexSession::CodexSession(CodexRpcClient& rpc, QObject* parent)
                     agentMessageItemId_ = itemId;
                 }
                 emit textDelta(params.value(QStringLiteral("delta")).toString());
+            } else if (method == QStringLiteral("item/started")) {
+                const QJsonObject item = params.value(QStringLiteral("item")).toObject();
+                emit itemStarted(item.value(QStringLiteral("id")).toString(), item);
+            } else if (method == QStringLiteral("item/completed")) {
+                const QJsonObject item = params.value(QStringLiteral("item")).toObject();
+                emit itemCompleted(item.value(QStringLiteral("id")).toString(), item);
             } else if (method == QStringLiteral("thread/tokenUsage/updated")) {
                 const QJsonObject info = params.value(QStringLiteral("tokenUsage")).toObject();
                 QJsonObject usage = info.value(QStringLiteral("last")).toObject();

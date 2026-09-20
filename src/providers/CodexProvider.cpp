@@ -1,9 +1,78 @@
 #include <providers/CodexProvider.hpp>
 
+#include <QDateTime>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QStringList>
 #include <QTimer>
 #include <QUuid>
 
 namespace {
+bool isActivityItem(const QJsonObject& item) {
+    const QString type = item.value(QStringLiteral("type")).toString();
+    return !type.isEmpty()
+        && type != QStringLiteral("agentMessage")
+        && type != QStringLiteral("reasoning")
+        && type != QStringLiteral("userMessage");
+}
+
+void appendItemField(const QJsonObject& item, const char* key, QStringList& parts) {
+    const QJsonValue value = item.value(QLatin1String(key));
+    if (value.isString()) {
+        const QString text = value.toString();
+        if (!text.isEmpty()) parts.append(text);
+    } else if (value.isObject()) {
+        parts.append(QString::fromUtf8(QJsonDocument(value.toObject()).toJson(QJsonDocument::Compact)));
+    } else if (value.isArray()) {
+        parts.append(QString::fromUtf8(QJsonDocument(value.toArray()).toJson(QJsonDocument::Compact)));
+    }
+}
+
+QString firstString(const QJsonObject& object, const char* key) {
+    const QJsonValue value = object.value(QLatin1String(key));
+    return value.isString() ? value.toString() : QString();
+}
+
+QString itemSummary(const QJsonObject& item) {
+    const QString type = item.value(QStringLiteral("type")).toString();
+    QStringList parts;
+
+    if (type == QStringLiteral("commandExecution")) {
+        appendItemField(item, "command", parts);
+        appendItemField(item, "cwd", parts);
+    } else if (type == QStringLiteral("fileChange")) {
+        appendItemField(item, "path", parts);
+    } else if (type == QStringLiteral("webSearch")) {
+        const QJsonObject action = item.value(QStringLiteral("action")).toObject();
+        QString url = firstString(action, "url");
+        if (url.isEmpty()) url = firstString(item, "url");
+        if (!url.isEmpty()) parts.append(url);
+    } else if (type == QStringLiteral("mcpToolCall")) {
+        appendItemField(item, "server", parts);
+        appendItemField(item, "tool", parts);
+        appendItemField(item, "arguments", parts);
+    }
+
+    if (parts.isEmpty()) {
+        const QJsonObject arguments = item.value(QStringLiteral("arguments")).toObject();
+        if (!arguments.isEmpty()) {
+            parts.append(QString::fromUtf8(
+                QJsonDocument(arguments).toJson(QJsonDocument::Compact)
+            ));
+        }
+    }
+    return parts.join(QLatin1Char('\n'));
+}
+
+QString itemResult(const QJsonObject& item) {
+    const char* keys[] = {"aggregatedOutput", "output", "result", "text"};
+    for (const char* key : keys) {
+        const QString value = item.value(QLatin1String(key)).toString();
+        if (!value.isEmpty()) return value;
+    }
+    return {};
+}
+
 QString roleName(MessageRole role) {
     switch (role) {
     case MessageRole::System: return QStringLiteral("System");
@@ -39,6 +108,35 @@ CodexProvider::CodexProvider(QObject* parent)
         response_.usage.inputTokens = inputTokens;
         response_.usage.outputTokens = outputTokens;
     });
+    connect(&session_, &CodexSession::itemStarted, this,
+        [this](const QString& itemId, const QJsonObject& item) {
+            if (!isActivityItem(item)) return;
+            const QString detail = itemSummary(item);
+            if (detail.isEmpty()) return;
+            stutter::ToolActivity activity;
+            activity.id = itemId;
+            activity.name = item.value(QStringLiteral("type")).toString();
+            activity.status = stutter::ToolActivityStatus::Running;
+            activity.detail = detail;
+            activity.startedAt = QDateTime::currentDateTimeUtc();
+            emit activityStarted(activity);
+        });
+    connect(&session_, &CodexSession::itemCompleted, this,
+        [this](const QString& itemId, const QJsonObject& item) {
+            if (!isActivityItem(item)) return;
+            const QString detail = itemSummary(item);
+            if (detail.isEmpty()) return;
+            stutter::ToolActivity activity;
+            activity.id = itemId;
+            activity.name = item.value(QStringLiteral("type")).toString();
+            activity.status = item.value(QStringLiteral("error")).toObject().isEmpty()
+                ? stutter::ToolActivityStatus::Succeeded
+                : stutter::ToolActivityStatus::Failed;
+            activity.detail = detail;
+            activity.result = itemResult(item);
+            activity.finishedAt = QDateTime::currentDateTimeUtc();
+            emit activityFinished(activity);
+        });
     connect(&session_, &CodexSession::turnCompleted, this, [this](const QString& status) {
         if (activeRequestId_.isEmpty()) return;
         if (status != QStringLiteral("completed")) {
