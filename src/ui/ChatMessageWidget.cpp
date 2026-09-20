@@ -40,7 +40,7 @@ class ActivityBlock final : public QWidget {
 public:
     explicit ActivityBlock(QWidget* parent = nullptr) : QWidget(parent) {
         auto* layout = new QVBoxLayout(this);
-        layout->setContentsMargins(12, 10, 12, 10);
+        layout->setContentsMargins(14, 2, 14, 2);
         layout->setSpacing(0);
 
         label_ = new QLabel(this);
@@ -59,7 +59,7 @@ public:
     }
 
     void updateHeight(int width) {
-        const int inner = width - 24;
+        const int inner = width - 28;
         if (inner <= 0) return;
         QTextDocument document;
         document.setDefaultFont(label_->font());
