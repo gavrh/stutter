@@ -13,6 +13,7 @@
 #include <QPushButton>
 #include <QScrollArea>
 #include <QScrollBar>
+#include <QStringList>
 #include <QTextEdit>
 #include <QTextDocument>
 #include <QToolButton>
@@ -22,6 +23,14 @@
 #include <functional>
 
 namespace {
+QString truncateLines(const QString& text, int maxLines) {
+    const QStringList lines = text.split(QLatin1Char('\n'));
+    if (lines.size() <= maxLines) return text;
+    const int hidden = lines.size() - maxLines;
+    return lines.mid(0, maxLines).join(QLatin1Char('\n'))
+        + QStringLiteral("\n... +%1 lines").arg(hidden);
+}
+
 class ChatInput final : public QTextEdit {
 public:
     explicit ChatInput(QWidget* parent = nullptr) : QTextEdit(parent) {
@@ -198,6 +207,19 @@ ChatMessageWidget* ChatWidget::addToolMessage(const QString& toolName, const QSt
         static_cast<int>(ChatMessageKind::Tool),
         QStringLiteral("%1\n%2").arg(toolName, content)
     );
+}
+
+ChatMessageWidget* ChatWidget::addActivity(const stutter::ToolActivity& activity) {
+    stutter::ToolActivity entry = activity;
+    entry.detail = truncateLines(entry.detail, 5);
+    entry.result = truncateLines(entry.result, 5);
+    auto* message = beginAssistantMessage();
+    message->setActivity(entry);
+    return message;
+}
+
+void ChatWidget::updateActivity(const stutter::ToolActivity& activity) {
+    addActivity(activity);
 }
 
 void ChatWidget::setBusy(bool busy) {

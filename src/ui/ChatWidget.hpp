@@ -2,6 +2,10 @@
 
 #include <CutterPlugin.h>
 
+#include <domain/ToolActivity.hpp>
+
+#include <QHash>
+
 class AnalysisContextWidget;
 class ChatMessageWidget;
 class QLabel;
@@ -26,6 +30,8 @@ public:
     void finishAssistantMessage();
     ChatMessageWidget* addErrorMessage(const QString& content);
     ChatMessageWidget* addToolMessage(const QString& toolName, const QString& content);
+    ChatMessageWidget* addActivity(const stutter::ToolActivity& activity);
+    void updateActivity(const stutter::ToolActivity& activity);
     void setBusy(bool busy);
     void setUsageText(const QString& text);
     void clearMessages();

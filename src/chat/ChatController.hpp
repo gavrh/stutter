@@ -6,6 +6,7 @@
 #include <chat/PromptBuilder.hpp>
 
 #include <domain/BinaryIdentity.hpp>
+#include <domain/ToolActivity.hpp>
 
 #include <QObject>
 
@@ -41,6 +42,11 @@ public:
         QObject* parent = nullptr
     );
     ~ChatController() override;
+
+signals:
+    void activityStarted(const stutter::ToolActivity& activity);
+    void activityUpdated(const stutter::ToolActivity& activity);
+    void activityFinished(const stutter::ToolActivity& activity);
 
 private:
     void submit(const QString& text);

@@ -19,13 +19,65 @@ QString titleFor(ChatMessageKind kind) {
     }
     return {};
 }
+
+QString activityHtml(const stutter::ToolActivity& activity) {
+    QString html = QStringLiteral("<b>%1</b>").arg(activity.name.toHtmlEscaped());
+    if (!activity.detail.isEmpty()) {
+        QString detail = activity.detail.toHtmlEscaped();
+        detail.replace(QLatin1Char('\n'), QStringLiteral("<br>"));
+        html += QStringLiteral("<br>%1").arg(detail);
+    }
+    if (!activity.result.isEmpty()) {
+        QString result = activity.result.toHtmlEscaped();
+        result.replace(QLatin1Char('\n'), QStringLiteral("<br>"));
+        html += QStringLiteral("<br>%1").arg(result);
+    }
+    return html;
 }
+}
+
+class ActivityBlock final : public QWidget {
+public:
+    explicit ActivityBlock(QWidget* parent = nullptr) : QWidget(parent) {
+        auto* layout = new QVBoxLayout(this);
+        layout->setContentsMargins(12, 10, 12, 10);
+        layout->setSpacing(0);
+
+        label_ = new QLabel(this);
+        label_->setWordWrap(true);
+        label_->setTextFormat(Qt::RichText);
+        label_->setTextInteractionFlags(Qt::TextBrowserInteraction);
+        label_->setOpenExternalLinks(true);
+        QSizePolicy policy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+        policy.setHeightForWidth(true);
+        label_->setSizePolicy(policy);
+        layout->addWidget(label_);
+    }
+
+    void setContent(const QString& html) {
+        label_->setText(html);
+    }
+
+    void updateHeight(int width) {
+        const int inner = width - 24;
+        if (inner <= 0) return;
+        QTextDocument document;
+        document.setDefaultFont(label_->font());
+        document.setDocumentMargin(0);
+        document.setTextWidth(inner);
+        document.setHtml(label_->text());
+        label_->setFixedHeight(qCeil(document.size().height()));
+    }
+
+private:
+    QLabel* label_;
+};
 
 ChatMessageWidget::ChatMessageWidget(
     ChatMessageKind kind,
     const QString& content,
     QWidget* parent
-) : QWidget(parent), kind_(kind), content_(content) {
+) : QWidget(parent), kind_(kind), content_(content), segmentText_(content) {
     setObjectName(QStringLiteral("chatMessage"));
     auto* layout = new QVBoxLayout(this);
     layout->setContentsMargins(0, 0, 0, 0);
@@ -57,15 +109,22 @@ ChatMessageWidget::ChatMessageWidget(
     } else {
         roleLabel_->setContentsMargins(14, 0, 14, 0);
         layout->addWidget(roleLabel_);
-        contentLabel_ = new QLabel(this);
-        contentLabel_->setContentsMargins(14, 2, 14, 2);
-        contentLabel_->setWordWrap(true);
-        contentLabel_->setTextInteractionFlags(Qt::TextBrowserInteraction);
-        contentLabel_->setOpenExternalLinks(true);
-        QSizePolicy contentPolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
-        contentPolicy.setHeightForWidth(true);
-        contentLabel_->setSizePolicy(contentPolicy);
-        layout->addWidget(contentLabel_);
+        if (kind_ == ChatMessageKind::Assistant) {
+            bodyLayout_ = new QVBoxLayout;
+            bodyLayout_->setContentsMargins(0, 0, 0, 0);
+            bodyLayout_->setSpacing(6);
+            layout->addLayout(bodyLayout_);
+        } else {
+            contentLabel_ = new QLabel(this);
+            contentLabel_->setContentsMargins(14, 2, 14, 2);
+            contentLabel_->setWordWrap(true);
+            contentLabel_->setTextInteractionFlags(Qt::TextBrowserInteraction);
+            contentLabel_->setOpenExternalLinks(true);
+            QSizePolicy contentPolicy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+            contentPolicy.setHeightForWidth(true);
+            contentLabel_->setSizePolicy(contentPolicy);
+            layout->addWidget(contentLabel_);
+        }
     }
     render();
 }
@@ -81,7 +140,34 @@ void ChatMessageWidget::setContent(const QString& content) {
 
 void ChatMessageWidget::appendContent(const QString& content) {
     content_.append(content);
-    render();
+    if (kind_ != ChatMessageKind::Assistant) {
+        render();
+        return;
+    }
+    if (!activeTextLabel_) {
+        segmentText_ = content;
+        addTextLabel(segmentText_);
+    } else {
+        segmentText_.append(content);
+        activeTextLabel_->setText(segmentText_);
+        updateTextLabelHeight(activeTextLabel_);
+    }
+}
+
+void ChatMessageWidget::setActivity(const stutter::ToolActivity& activity) {
+    if (!bodyLayout_) return;
+
+    ActivityBlock* block = activityBlocks_.value(activity.id);
+    if (!block) {
+        activeTextLabel_ = nullptr;
+        segmentText_.clear();
+        block = createActivityBlock();
+        bodyLayout_->addWidget(block);
+        activityBlocks_.insert(activity.id, block);
+    }
+    block->setContent(activityHtml(activity));
+    block->setVisible(true);
+    block->updateHeight(this->width());
 }
 
 void ChatMessageWidget::render() {
@@ -91,48 +177,76 @@ void ChatMessageWidget::render() {
         contentBrowser_->setHtml(
             QStringLiteral("<b>%1</b><br>%2").arg(titleFor(kind_), body)
         );
-        updateDocumentWidth();
+        updateBrowserWidth(contentBrowser_);
     } else if (kind_ == ChatMessageKind::Assistant) {
-        contentLabel_->setTextFormat(Qt::MarkdownText);
-        contentLabel_->setText(content_);
+        if (!content_.isEmpty() && textLabels_.isEmpty()) {
+            addTextLabel(content_);
+        }
     } else {
         contentLabel_->setTextFormat(Qt::PlainText);
         contentLabel_->setText(content_);
+        updateTextLabelHeight(contentLabel_);
     }
-    updateContentHeight();
+}
+
+void ChatMessageWidget::addTextLabel(const QString& text) {
+    auto* label = new QLabel(this);
+    label->setContentsMargins(14, 2, 14, 2);
+    label->setWordWrap(true);
+    label->setTextFormat(Qt::MarkdownText);
+    label->setTextInteractionFlags(Qt::TextBrowserInteraction);
+    label->setOpenExternalLinks(true);
+    QSizePolicy policy(QSizePolicy::Preferred, QSizePolicy::Minimum);
+    policy.setHeightForWidth(true);
+    label->setSizePolicy(policy);
+    label->setText(text);
+    bodyLayout_->addWidget(label);
+    textLabels_.append(label);
+    activeTextLabel_ = label;
+    updateTextLabelHeight(label);
+}
+
+ActivityBlock* ChatMessageWidget::createActivityBlock() {
+    return new ActivityBlock(this);
 }
 
 void ChatMessageWidget::resizeEvent(QResizeEvent* event) {
     QWidget::resizeEvent(event);
-    if (contentBrowser_) updateDocumentWidth();
-    updateContentHeight();
+    if (contentBrowser_) updateBrowserWidth(contentBrowser_);
+    for (ActivityBlock* block : activityBlocks_) {
+        block->updateHeight(this->width());
+    }
+    for (QLabel* label : textLabels_) {
+        updateTextLabelHeight(label);
+    }
+    if (contentLabel_) updateTextLabelHeight(contentLabel_);
 }
 
-void ChatMessageWidget::updateDocumentWidth() {
-    const int width = contentBrowser_->viewport()->width();
-    if (width > 0) contentBrowser_->document()->setTextWidth(width);
+void ChatMessageWidget::updateBrowserWidth(QTextBrowser* browser) {
+    const int width = browser->viewport()->width();
+    if (width > 0) browser->document()->setTextWidth(width);
 }
 
-void ChatMessageWidget::updateContentHeight() {
-    if (!contentLabel_) return;
+void ChatMessageWidget::updateTextLabelHeight(QLabel* label) {
+    if (!label) return;
     const int width = this->width();
     if (width <= 0) return;
 
-    const QMargins margins = contentLabel_->contentsMargins();
+    const QMargins margins = label->contentsMargins();
     const int textWidth = width - margins.left() - margins.right();
     if (textWidth <= 0) return;
 
     QTextDocument document;
-    document.setDefaultFont(contentLabel_->font());
+    document.setDefaultFont(label->font());
     document.setDocumentMargin(0);
     document.setTextWidth(textWidth);
-    if (kind_ == ChatMessageKind::Assistant) {
-        document.setMarkdown(content_);
+    if (label->textFormat() == Qt::MarkdownText) {
+        document.setMarkdown(label->text());
     } else {
-        document.setPlainText(content_);
+        document.setPlainText(label->text());
     }
 
     const int height = qCeil(document.size().height())
         + margins.top() + margins.bottom();
-    contentLabel_->setFixedHeight(height);
+    label->setFixedHeight(height);
 }

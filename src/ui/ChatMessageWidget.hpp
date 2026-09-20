@@ -1,10 +1,16 @@
 #pragma once
 
+#include <domain/ToolActivity.hpp>
+
+#include <QHash>
+#include <QVector>
 #include <QWidget>
 
+class ActivityBlock;
 class QLabel;
 class QResizeEvent;
 class QTextBrowser;
+class QVBoxLayout;
 
 enum class ChatMessageKind {
     User,
@@ -28,18 +34,26 @@ public:
     void setTitle(const QString& title);
     void setContent(const QString& content);
     void appendContent(const QString& content);
+    void setActivity(const stutter::ToolActivity& activity);
 
 protected:
     void resizeEvent(QResizeEvent* event) override;
 
 private:
     void render();
-    void updateDocumentWidth();
-    void updateContentHeight();
+    void addTextLabel(const QString& text);
+    ActivityBlock* createActivityBlock();
+    void updateTextLabelHeight(QLabel* label);
+    void updateBrowserWidth(QTextBrowser* browser);
 
     ChatMessageKind kind_;
     QString content_;
+    QString segmentText_;
     QLabel* roleLabel_;
     QLabel* contentLabel_ = nullptr;
     QTextBrowser* contentBrowser_ = nullptr;
+    QVBoxLayout* bodyLayout_ = nullptr;
+    QLabel* activeTextLabel_ = nullptr;
+    QVector<QLabel*> textLabels_;
+    QHash<QString, ActivityBlock*> activityBlocks_;
 };

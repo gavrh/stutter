@@ -192,6 +192,18 @@ void ChatController::connectProvider(Provider& provider) {
     connect(&provider, &Provider::eventReceived, this, &ChatController::handleEvent);
     connect(&provider, &Provider::finished, this, &ChatController::handleFinished);
     connect(&provider, &Provider::failed, this, &ChatController::handleFailure);
+    connect(&provider, &Provider::activityStarted, this, [this](const stutter::ToolActivity& activity) {
+        widget_.addActivity(activity);
+        emit activityStarted(activity);
+    });
+    connect(&provider, &Provider::activityUpdated, this, [this](const stutter::ToolActivity& activity) {
+        widget_.updateActivity(activity);
+        emit activityUpdated(activity);
+    });
+    connect(&provider, &Provider::activityFinished, this, [this](const stutter::ToolActivity& activity) {
+        widget_.updateActivity(activity);
+        emit activityFinished(activity);
+    });
 }
 
 void ChatController::handleEvent(const ProviderEvent& event) {
