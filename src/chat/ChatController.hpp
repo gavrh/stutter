@@ -37,6 +37,7 @@ public:
         stutter::ConversationRepository& conversations,
         stutter::MessageRepository& messages,
         std::function<stutter::BinaryIdentity()> binaryProvider,
+        std::function<QString()> analysisContextProvider,
         QObject* parent = nullptr
     );
     ~ChatController() override;
@@ -65,6 +66,7 @@ private:
     PromptBuilder promptBuilder_;
     HistorySummarizer historySummarizer_;
     std::function<stutter::BinaryIdentity()> binaryProvider_;
+    std::function<QString()> analysisContextProvider_;
     std::unique_ptr<Provider> ownedProvider_;
     Provider* provider_ = nullptr;
     QString requestId_;

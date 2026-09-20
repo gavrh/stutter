@@ -1,6 +1,7 @@
 #pragma once
 
 #include <config/ModelCatalog.hpp>
+#include <cutter/CutterGateway.hpp>
 #include <providers/CodexProvider.hpp>
 #include <storage/AnalysisNoteRepository.hpp>
 #include <storage/BinaryRepository.hpp>
@@ -28,8 +29,11 @@ public:
     CodexProvider* codexProvider() { return &codexProvider_; }
 
 private:
+    void updateAnalysisContext(MainWindow* mainWindow);
+
     ModelCatalog modelCatalog_;
     CodexProvider codexProvider_;
+    CutterGateway cutterGateway_;
     stutter::Database database_;
     stutter::BinaryRepository binaryRepository_ {database_};
     stutter::ConversationRepository conversationRepository_ {database_};

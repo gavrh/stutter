@@ -35,6 +35,7 @@ ChatController::ChatController(
     stutter::ConversationRepository& conversations,
     stutter::MessageRepository& messages,
     std::function<stutter::BinaryIdentity()> binaryProvider,
+    std::function<QString()> analysisContextProvider,
     QObject* parent
 ) : QObject(parent),
     widget_(widget),
@@ -42,7 +43,8 @@ ChatController::ChatController(
     modelCatalog_(modelCatalog),
     codexProvider_(codexProvider),
     conversations_(this),
-    binaryProvider_(std::move(binaryProvider)) {
+    binaryProvider_(std::move(binaryProvider)),
+    analysisContextProvider_(std::move(analysisContextProvider)) {
     conversations_.setRepositories(&binaries, &conversations, &messages);
     connect(&widget_, &ChatWidget::messageSubmitted, this, &ChatController::submit);
     connect(&widget_, &ChatWidget::stopRequested, this, &ChatController::stop);
@@ -71,7 +73,7 @@ void ChatController::submit(const QString& text) {
     const ChatContext context = contextBuilder_.build(
         conversations_.messages(),
         conversations_.currentConversation().summary,
-        {},
+        analysisContextProvider_ ? analysisContextProvider_() : QString(),
         model
     );
     const ChatRequest request = promptBuilder_.build(context, providerConfig());

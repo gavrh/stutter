@@ -2,10 +2,13 @@
 
 #include <chat/ChatController.hpp>
 #include <domain/BinaryIdentity.hpp>
+#include <ui/AnalysisContextWidget.hpp>
 #include <ui/ChatWidget.hpp>
 #include <ui/SettingsDialog.hpp>
 
 #include <MainWindow.h>
+
+#include <QFileInfo>
 
 StutterContext::StutterContext(QObject* parent)
     : QObject(parent),
@@ -39,8 +42,16 @@ ChatWidget* StutterContext::createChatWidget(MainWindow* mainWindow) {
         [mainWindow]() -> stutter::BinaryIdentity {
             return stutter::BinaryRepository::identityFromPath(mainWindow->getFilename());
         },
+        [this, mainWindow]() -> QString {
+            return cutterGateway_.analysisContext(mainWindow->getFilename());
+        },
         this
     );
+
+    connect(&cutterGateway_, &CutterGateway::contextChanged, this, [this, mainWindow] {
+        updateAnalysisContext(mainWindow);
+    });
+    updateAnalysisContext(mainWindow);
 
     connect(chatWidget_, &ChatWidget::settingsRequested, settingsDialog_, [this] {
         settingsDialog_->show();
@@ -48,4 +59,23 @@ ChatWidget* StutterContext::createChatWidget(MainWindow* mainWindow) {
         settingsDialog_->activateWindow();
     });
     return chatWidget_;
+}
+
+void StutterContext::updateAnalysisContext(MainWindow* mainWindow) {
+    if (!chatWidget_ || !mainWindow) return;
+
+    const QString path = mainWindow->getFilename();
+    if (path.isEmpty()) {
+        chatWidget_->analysisContextWidget()->clearAnalysisContext();
+        return;
+    }
+
+    const RVA address = cutterGateway_.reader().currentAddress();
+    QString function = cutterGateway_.reader().functionName(address);
+    if (function.isEmpty()) function = tr("No function");
+    chatWidget_->analysisContextWidget()->setAnalysisContext(
+        QFileInfo(path).fileName(),
+        function,
+        address
+    );
 }
