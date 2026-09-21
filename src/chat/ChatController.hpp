@@ -82,6 +82,7 @@ private:
     stutter::ToolRegistry* tools_ = nullptr;
     stutter::ToolExecutor* toolExecutor_ = nullptr;
     ChatRequest activeRequest_;
+    stutter::Usage sessionUsage_;
     std::function<stutter::BinaryIdentity()> binaryProvider_;
     std::function<QString()> analysisContextProvider_;
     std::unique_ptr<Provider> ownedProvider_;
