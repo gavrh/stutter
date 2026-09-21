@@ -8,10 +8,39 @@
 #include <QResizeEvent>
 #include <QTextBrowser>
 #include <QTextDocument>
+#include <QTextOption>
 #include <QVBoxLayout>
 #include <QtMath>
 
 namespace {
+QString wrapLongRuns(const QString& text, int maxRun = 32) {
+    QString result;
+    result.reserve(text.size() + text.size() / maxRun);
+    int run = 0;
+    bool inLinkTarget = false;
+    for (int index = 0; index < text.size(); ++index) {
+        const QChar character = text.at(index);
+        if (!inLinkTarget && character == QLatin1Char('(')
+            && index > 0 && text.at(index - 1) == QLatin1Char(']')) {
+            inLinkTarget = true;
+        } else if (inLinkTarget && character == QLatin1Char(')')) {
+            inLinkTarget = false;
+        }
+        result.append(character);
+        if (inLinkTarget) continue;
+        if (character.isSpace()) {
+            run = 0;
+            continue;
+        }
+        ++run;
+        if (run >= maxRun) {
+            result.append(QChar(0x200B));
+            run = 0;
+        }
+    }
+    return result;
+}
+
 QString titleFor(ChatMessageKind kind) {
     switch (kind) {
     case ChatMessageKind::User: return QStringLiteral("You");
@@ -22,17 +51,19 @@ QString titleFor(ChatMessageKind kind) {
     return {};
 }
 
+QString escapedWrapped(const QString& text) {
+    QString value = wrapLongRuns(text.toHtmlEscaped());
+    value.replace(QLatin1Char('\n'), QStringLiteral("<br>"));
+    return value;
+}
+
 QString activityHtml(const stutter::ToolActivity& activity) {
     QString html = QStringLiteral("<b>%1</b>").arg(activity.name.toHtmlEscaped());
     if (!activity.detail.isEmpty()) {
-        QString detail = activity.detail.toHtmlEscaped();
-        detail.replace(QLatin1Char('\n'), QStringLiteral("<br>"));
-        html += QStringLiteral("<br>%1").arg(detail);
+        html += QStringLiteral("<br>%1").arg(escapedWrapped(activity.detail));
     }
     if (!activity.result.isEmpty()) {
-        QString result = activity.result.toHtmlEscaped();
-        result.replace(QLatin1Char('\n'), QStringLiteral("<br>"));
-        html += QStringLiteral("<br>%1").arg(result);
+        html += QStringLiteral("<br>%1").arg(escapedWrapped(activity.result));
     }
     return html;
 }
@@ -98,6 +129,8 @@ ChatMessageWidget::ChatMessageWidget(
         contentBrowser_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         contentBrowser_->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
         contentBrowser_->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+        contentBrowser_->setLineWrapMode(QTextEdit::WidgetWidth);
+        contentBrowser_->setWordWrapMode(QTextOption::WrapAnywhere);
         contentBrowser_->document()->setDocumentMargin(14);
         layout->addWidget(contentBrowser_);
         connect(
@@ -151,7 +184,7 @@ void ChatMessageWidget::appendContent(const QString& content) {
         addTextLabel(segmentText_);
     } else {
         segmentText_.append(content);
-        activeTextLabel_->setText(stutter::stripToolBlocks(segmentText_));
+        activeTextLabel_->setText(wrapLongRuns(stutter::stripToolBlocks(segmentText_)));
         updateTextLabelHeight(activeTextLabel_);
     }
 }
@@ -201,7 +234,7 @@ void ChatMessageWidget::addTextLabel(const QString& text) {
     QSizePolicy policy(QSizePolicy::Preferred, QSizePolicy::Minimum);
     policy.setHeightForWidth(true);
     label->setSizePolicy(policy);
-    label->setText(stutter::stripToolBlocks(text));
+    label->setText(wrapLongRuns(stutter::stripToolBlocks(text)));
     bodyLayout_->addWidget(label);
     textLabels_.append(label);
     activeTextLabel_ = label;

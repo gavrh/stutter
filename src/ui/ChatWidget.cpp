@@ -109,6 +109,7 @@ ChatWidget::ChatWidget(MainWindow* mainWindow) : CutterDockWidget(mainWindow) {
     messageScroll_ = new QScrollArea(content);
     messageScroll_->setWidgetResizable(true);
     messageScroll_->setFrameShape(QFrame::NoFrame);
+    messageScroll_->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     messageContainer_ = new QWidget(messageScroll_);
     messageLayout_ = new QVBoxLayout(messageContainer_);
     messageLayout_->setContentsMargins(0, 0, 0, 0);
