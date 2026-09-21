@@ -11,14 +11,16 @@ Stutter is an AI assistant built directly into [Cutter](https://cutter.re) and d
 
 - [x] In-Cutter chat with streamed responses
 - [x] OpenAI, Codex, Anthropic, DeepSeek, and OpenRouter providers
-- [x] Model, effort, endpoint, and API key settings
-- [x] Live analysis context (binary, address, function, debug state)
+- [x] Provider and model configuration
+- [x] Live analysis context awareness
+- [x] Model-driven tool use
+- [x] Tools to inspect and modify the binary and analysis
 - [x] Inline activity for tool and operation steps
-- [x] Cutter integration layer (read, edit, patch, debug)
-- [ ] Model-driven tool use
+- [x] Permission controls for state-changing actions
+- [x] Context management for long conversations
 - [ ] Persistence for settings, keys, and conversations
 - [ ] Web search and fetch tools
-- [ ] Approval controls for changes
+- [ ] Per-call approval for changes
 - [ ] Conversation history and session tracking
 - [ ] History summarization
 - [ ] Tests and CI
