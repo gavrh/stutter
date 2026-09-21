@@ -9,8 +9,12 @@
 #include <storage/Database.hpp>
 #include <storage/MessageRepository.hpp>
 #include <storage/SettingsRepository.hpp>
+#include <tools/ToolExecutor.hpp>
+#include <tools/ToolRegistry.hpp>
 
 #include <QObject>
+
+#include <memory>
 
 class ChatWidget;
 class ChatController;
@@ -40,6 +44,8 @@ private:
     stutter::MessageRepository messageRepository_ {database_};
     stutter::AnalysisNoteRepository analysisNoteRepository_ {database_};
     stutter::SettingsRepository settingsRepository_ {database_};
+    stutter::ToolRegistry toolRegistry_;
+    std::unique_ptr<stutter::ToolExecutor> toolExecutor_;
     ChatController* chatController_ = nullptr;
     ChatWidget* chatWidget_ = nullptr;
     SettingsDialog* settingsDialog_ = nullptr;

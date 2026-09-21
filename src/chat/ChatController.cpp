@@ -6,6 +6,8 @@
 #include <storage/BinaryRepository.hpp>
 #include <storage/ConversationRepository.hpp>
 #include <storage/MessageRepository.hpp>
+#include <tools/ToolExecutor.hpp>
+#include <tools/ToolRegistry.hpp>
 #include <ui/ChatMessageWidget.hpp>
 #include <ui/ChatWidget.hpp>
 #include <ui/SettingsDialog.hpp>
@@ -15,6 +17,32 @@
 #include <utility>
 
 namespace {
+constexpr int maxToolResultChars = 12000;
+constexpr int keepRecentToolResults = 6;
+
+QString truncateToolResult(const QString& text) {
+    if (text.size() <= maxToolResultChars) return text;
+    return text.left(maxToolResultChars)
+        + QStringLiteral("\n... [truncated %1 characters]").arg(text.size() - maxToolResultChars);
+}
+
+stutter::ToolActivityCategory toolCategory(stutter::ToolPermission permission) {
+    switch (permission) {
+    case stutter::ToolPermission::Read: return stutter::ToolActivityCategory::Reader;
+    case stutter::ToolPermission::Analysis: return stutter::ToolActivityCategory::Analysis;
+    case stutter::ToolPermission::Binary: return stutter::ToolActivityCategory::Binary;
+    case stutter::ToolPermission::Debugger: return stutter::ToolActivityCategory::Debugger;
+    }
+    return stutter::ToolActivityCategory::Provider;
+}
+
+QString describeCall(const ToolCall& call) {
+    if (call.arguments.isEmpty()) return call.rawArguments;
+    return QString::fromUtf8(
+        QJsonDocument(call.arguments).toJson(QJsonDocument::Indented)
+    );
+}
+
 QString formatTokenCount(qint64 count) {
     if (count < 1000) {
         return QString::number(count);
@@ -34,6 +62,8 @@ ChatController::ChatController(
     stutter::BinaryRepository& binaries,
     stutter::ConversationRepository& conversations,
     stutter::MessageRepository& messages,
+    stutter::ToolRegistry& tools,
+    stutter::ToolExecutor& toolExecutor,
     std::function<stutter::BinaryIdentity()> binaryProvider,
     std::function<QString()> analysisContextProvider,
     QObject* parent
@@ -43,6 +73,8 @@ ChatController::ChatController(
     modelCatalog_(modelCatalog),
     codexProvider_(codexProvider),
     conversations_(this),
+    tools_(&tools),
+    toolExecutor_(&toolExecutor),
     binaryProvider_(std::move(binaryProvider)),
     analysisContextProvider_(std::move(analysisContextProvider)) {
     conversations_.setRepositories(&binaries, &conversations, &messages);
@@ -76,13 +108,20 @@ void ChatController::submit(const QString& text) {
         analysisContextProvider_ ? analysisContextProvider_() : QString(),
         model
     );
-    const ChatRequest request = promptBuilder_.build(context, providerConfig());
+    activeRequest_ = promptBuilder_.build(context, providerConfig());
+    if (tools_ && toolExecutor_ && providerConfig().providerId != QStringLiteral("codex")) {
+        QVector<ToolDefinition> allowed;
+        for (const ToolDefinition& definition : tools_->definitions()) {
+            if (toolExecutor_->canUse(definition.name)) allowed.append(definition);
+        }
+        activeRequest_.tools = allowed;
+    }
 
     streamedResponse_.clear();
     cancellationRequested_ = false;
     widget_.setBusy(true);
     widget_.beginAssistantMessage()->setTitle(assistantTitle());
-    requestId_ = provider_->send(request);
+    requestId_ = provider_->send(activeRequest_);
 }
 
 void ChatController::stop() {
@@ -222,12 +261,7 @@ void ChatController::handleFinished(const QString& requestId, const ChatResponse
     if (!response.content.isEmpty()) {
         conversations_.appendMessage(stutter::MessageRole::Assistant, response.content);
     }
-    for (const ToolCall& tool : response.toolCalls) {
-        const QString arguments = tool.rawArguments.isEmpty()
-            ? QString::fromUtf8(QJsonDocument(tool.arguments).toJson(QJsonDocument::Indented))
-            : tool.rawArguments;
-        widget_.addToolMessage(tool.name, arguments);
-    }
+    if (runToolCalls(response)) return;
     widget_.setUsageText(tr("%1 input / %2 output")
         .arg(formatTokenCount(response.usage.inputTokens))
         .arg(formatTokenCount(response.usage.outputTokens)));
@@ -242,9 +276,65 @@ void ChatController::handleFailure(const QString& requestId, const ProviderError
     resetRequest();
 }
 
+bool ChatController::runToolCalls(const ChatResponse& response) {
+    if (response.toolCalls.isEmpty()) return false;
+    if (!tools_ || !toolExecutor_) return false;
+
+    ChatMessage assistantMessage;
+    assistantMessage.role = MessageRole::Assistant;
+    assistantMessage.content = response.content;
+    assistantMessage.toolCalls = response.toolCalls;
+    activeRequest_.messages.append(assistantMessage);
+
+    for (const ToolCall& call : response.toolCalls) {
+        stutter::ToolActivity activity;
+        activity.id = call.id;
+        activity.name = call.name;
+        activity.category = toolCategory(toolExecutor_->permissionFor(call.name));
+        activity.status = stutter::ToolActivityStatus::Running;
+        activity.detail = describeCall(call);
+        widget_.addActivity(activity);
+        emit activityStarted(activity);
+
+        const stutter::ToolResult result = toolExecutor_->execute(call);
+        activity.status = result.success
+            ? stutter::ToolActivityStatus::Succeeded
+            : stutter::ToolActivityStatus::Failed;
+        activity.result = result.success ? result.content : result.error;
+        widget_.updateActivity(activity);
+        emit activityFinished(activity);
+
+        ChatMessage toolMessage;
+        toolMessage.role = MessageRole::Tool;
+        toolMessage.toolCallId = call.id;
+        toolMessage.content = result.success
+            ? truncateToolResult(result.content)
+            : QStringLiteral("Error: %1").arg(result.error);
+        activeRequest_.messages.append(toolMessage);
+    }
+
+    shrinkOldToolResults();
+    streamedResponse_.clear();
+    requestId_ = provider_->send(activeRequest_);
+    return true;
+}
+
+void ChatController::shrinkOldToolResults() {
+    int seen = 0;
+    for (int index = activeRequest_.messages.size() - 1; index >= 0; --index) {
+        ChatMessage& message = activeRequest_.messages[index];
+        if (message.role != MessageRole::Tool) continue;
+        ++seen;
+        if (seen > keepRecentToolResults && message.content.size() > 160) {
+            message.content = QStringLiteral("[older tool output omitted]");
+        }
+    }
+}
+
 void ChatController::resetRequest() {
     requestId_.clear();
     streamedResponse_.clear();
     cancellationRequested_ = false;
+    activeRequest_ = {};
     widget_.setBusy(false);
 }

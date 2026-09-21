@@ -31,6 +31,22 @@ ChatWidget* StutterContext::createChatWidget(MainWindow* mainWindow) {
         mainWindow
     );
     chatWidget_ = new ChatWidget(mainWindow);
+    stutter::registerAllTools(toolRegistry_, cutterGateway_);
+    toolExecutor_ = std::make_unique<stutter::ToolExecutor>(
+        toolRegistry_,
+        [this](stutter::ToolPermission permission) {
+            switch (permission) {
+            case stutter::ToolPermission::Read: return true;
+            case stutter::ToolPermission::Analysis:
+                return settingsDialog_->allowAnalysisChanges();
+            case stutter::ToolPermission::Binary:
+                return settingsDialog_->allowBinaryChanges();
+            case stutter::ToolPermission::Debugger:
+                return settingsDialog_->allowDebuggerControl();
+            }
+            return false;
+        }
+    );
     chatController_ = new ChatController(
         *chatWidget_,
         *settingsDialog_,
@@ -39,6 +55,8 @@ ChatWidget* StutterContext::createChatWidget(MainWindow* mainWindow) {
         binaryRepository_,
         conversationRepository_,
         messageRepository_,
+        toolRegistry_,
+        *toolExecutor_,
         [mainWindow]() -> stutter::BinaryIdentity {
             return stutter::BinaryRepository::identityFromPath(mainWindow->getFilename());
         },
