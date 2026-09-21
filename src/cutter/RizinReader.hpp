@@ -19,6 +19,7 @@ public:
     QString decompile(RVA address) const;
     QString hexdump(RVA address, int length) const;
     QString xrefs(RVA address) const;
+    QString commentAt(RVA address) const;
 
     QString functions() const;
     QString strings(int limit) const;

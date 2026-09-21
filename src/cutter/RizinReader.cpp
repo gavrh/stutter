@@ -60,6 +60,10 @@ QString RizinReader::xrefs(RVA address) const {
     return Core()->cmd(QStringLiteral("axt @ %1").arg(addressString(address)));
 }
 
+QString RizinReader::commentAt(RVA address) const {
+    return Core()->getCommentAt(address);
+}
+
 QString RizinReader::functions() const {
     return Core()->cmd(QStringLiteral("afl"));
 }

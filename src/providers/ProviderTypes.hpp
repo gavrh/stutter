@@ -1,12 +1,15 @@
 #pragma once
 
 #include <domain/Usage.hpp>
+#include <tools/ToolCall.hpp>
 
 #include <QJsonObject>
 #include <QMetaType>
 #include <QString>
 #include <QUrl>
 #include <QVector>
+
+using stutter::ToolCall;
 
 enum class ProviderType {
     OpenAI,
@@ -19,13 +22,6 @@ enum class MessageRole {
     User,
     Assistant,
     Tool
-};
-
-struct ToolCall {
-    QString id;
-    QString name;
-    QJsonObject arguments;
-    QString rawArguments;
 };
 
 struct ChatMessage {
