@@ -2,6 +2,7 @@
 
 #include <providers/CodexRpcClient.hpp>
 
+#include <QDebug>
 #include <QJsonArray>
 #include <QJsonObject>
 
@@ -40,6 +41,12 @@ CodexSession::CodexSession(CodexRpcClient& rpc, QObject* parent)
                 qint64 outputTokens = 0;
                 readTokenUsage(usage, inputTokens, outputTokens);
                 emit tokenUsage(inputTokens, outputTokens);
+            } else if (method == QStringLiteral("error")) {
+                const QJsonObject error = params.value(QStringLiteral("error")).toObject();
+                const QString message = error.value(QStringLiteral("message")).toString();
+                qWarning() << "Stutter: Codex error:" << message
+                           << "retry:" << params.value(QStringLiteral("willRetry")).toBool();
+                emit turnError(message);
             } else if (method == QStringLiteral("turn/completed")) {
                 const QJsonObject turn = params.value(QStringLiteral("turn")).toObject();
                 const QJsonObject usage = turn.value(QStringLiteral("usage")).toObject();
@@ -49,7 +56,11 @@ CodexSession::CodexSession(CodexRpcClient& rpc, QObject* parent)
                     readTokenUsage(usage, inputTokens, outputTokens);
                     emit tokenUsage(inputTokens, outputTokens);
                 }
-                emit turnCompleted(turn.value(QStringLiteral("status")).toString());
+                const QString status = turn.value(QStringLiteral("status")).toString();
+                if (status != QStringLiteral("completed")) {
+                    qWarning() << "Stutter: Codex turn status:" << status;
+                }
+                emit turnCompleted(status);
             }
         });
 }

@@ -1,5 +1,7 @@
 #include <ui/ChatMessageWidget.hpp>
 
+#include <tools/ToolProtocol.hpp>
+
 #include <QAbstractTextDocumentLayout>
 #include <QFrame>
 #include <QLabel>
@@ -149,7 +151,7 @@ void ChatMessageWidget::appendContent(const QString& content) {
         addTextLabel(segmentText_);
     } else {
         segmentText_.append(content);
-        activeTextLabel_->setText(segmentText_);
+        activeTextLabel_->setText(stutter::stripToolBlocks(segmentText_));
         updateTextLabelHeight(activeTextLabel_);
     }
 }
@@ -199,7 +201,7 @@ void ChatMessageWidget::addTextLabel(const QString& text) {
     QSizePolicy policy(QSizePolicy::Preferred, QSizePolicy::Minimum);
     policy.setHeightForWidth(true);
     label->setSizePolicy(policy);
-    label->setText(text);
+    label->setText(stutter::stripToolBlocks(text));
     bodyLayout_->addWidget(label);
     textLabels_.append(label);
     activeTextLabel_ = label;

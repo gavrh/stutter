@@ -18,6 +18,8 @@ public:
     QString send(const ChatRequest& request) override;
     void cancel(const QString& requestId) override;
 
+    QString continueTurn(const QString& text);
+
     bool isAvailable() const { return auth_.isAvailable(); }
     bool isConnected() const { return auth_.isConnected(); }
     QString connectionStatus() const { return auth_.statusText(); }
@@ -41,5 +43,8 @@ private:
     QString pendingPrompt_;
     QString pendingInstructions_;
     QString pendingEffort_;
+    QString lastTurnError_;
+    bool threadActive_ = false;
+    bool cancelRequested_ = false;
     ChatResponse response_;
 };

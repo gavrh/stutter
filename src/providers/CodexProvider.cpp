@@ -104,7 +104,11 @@ CodexProvider::CodexProvider(QObject* parent)
     connect(&auth_, &CodexAuthService::statusChanged,
             this, &CodexProvider::connectionStatusChanged);
     connect(&session_, &CodexSession::threadStarted, this, [this] {
+        threadActive_ = true;
         session_.startTurn(pendingPrompt_, pendingEffort_);
+    });
+    connect(&session_, &CodexSession::turnError, this, [this](const QString& message) {
+        if (!message.isEmpty()) lastTurnError_ = message;
     });
     connect(&session_, &CodexSession::textDelta, this, [this](const QString& delta) {
         if (activeRequestId_.isEmpty()) return;
@@ -153,7 +157,14 @@ CodexProvider::CodexProvider(QObject* parent)
     connect(&session_, &CodexSession::turnCompleted, this, [this](const QString& status) {
         if (activeRequestId_.isEmpty()) return;
         if (status != QStringLiteral("completed")) {
-            failActive(tr("Codex turn ended with status: %1").arg(status));
+            threadActive_ = false;
+            if (cancelRequested_) {
+                failActive(tr("Codex request cancelled"));
+            } else if (lastTurnError_.isEmpty()) {
+                failActive(tr("Codex turn ended with status: %1").arg(status));
+            } else {
+                failActive(tr("Codex turn ended (%1): %2").arg(status, lastTurnError_));
+            }
             return;
         }
         response_.stopReason = status;
@@ -166,7 +177,8 @@ CodexProvider::CodexProvider(QObject* parent)
         activeRequestId_.clear();
         pendingPrompt_.clear();
         pendingInstructions_.clear();
-        pendingEffort_.clear();
+        cancelRequested_ = false;
+        lastTurnError_.clear();
         emit finished(requestId, response_);
     });
     connect(&session_, &CodexSession::errorOccurred, this, &CodexProvider::failActive);
@@ -189,6 +201,9 @@ QString CodexProvider::send(const ChatRequest& request) {
         return requestId;
     }
 
+    threadActive_ = false;
+    cancelRequested_ = false;
+    lastTurnError_.clear();
     activeRequestId_ = requestId;
     pendingPrompt_ = promptFor(request);
     pendingInstructions_ = instructionsFor(request);
@@ -199,7 +214,30 @@ QString CodexProvider::send(const ChatRequest& request) {
 }
 
 void CodexProvider::cancel(const QString& requestId) {
-    if (requestId == activeRequestId_) session_.interrupt();
+    if (requestId == activeRequestId_) {
+        cancelRequested_ = true;
+        session_.interrupt();
+    }
+}
+
+QString CodexProvider::continueTurn(const QString& text) {
+    const QString requestId = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    if (!isConnected() || !threadActive_ || !activeRequestId_.isEmpty()) {
+        QTimer::singleShot(0, this, [this, requestId] {
+            ProviderError error;
+            error.code = QStringLiteral("codex_unavailable");
+            error.message = tr("Codex thread is not available to continue");
+            emit failed(requestId, error);
+        });
+        return requestId;
+    }
+
+    activeRequestId_ = requestId;
+    cancelRequested_ = false;
+    lastTurnError_.clear();
+    response_ = {};
+    session_.startTurn(text, pendingEffort_);
+    return requestId;
 }
 
 void CodexProvider::disconnect() {
@@ -235,6 +273,8 @@ void CodexProvider::failActive(const QString& message) {
     pendingPrompt_.clear();
     pendingInstructions_.clear();
     pendingEffort_.clear();
+    threadActive_ = false;
+    cancelRequested_ = false;
     ProviderError error;
     error.code = QStringLiteral("codex_error");
     error.message = message;

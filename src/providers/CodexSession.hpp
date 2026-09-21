@@ -28,6 +28,7 @@ signals:
     void itemStarted(const QString& itemId, const QJsonObject& item);
     void itemCompleted(const QString& itemId, const QJsonObject& item);
     void tokenUsage(qint64 inputTokens, qint64 outputTokens);
+    void turnError(const QString& message);
     void turnCompleted(const QString& status);
     void errorOccurred(const QString& message);
 

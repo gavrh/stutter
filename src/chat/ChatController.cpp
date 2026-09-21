@@ -7,6 +7,7 @@
 #include <storage/ConversationRepository.hpp>
 #include <storage/MessageRepository.hpp>
 #include <tools/ToolExecutor.hpp>
+#include <tools/ToolProtocol.hpp>
 #include <tools/ToolRegistry.hpp>
 #include <ui/ChatMessageWidget.hpp>
 #include <ui/ChatWidget.hpp>
@@ -109,12 +110,22 @@ void ChatController::submit(const QString& text) {
         model
     );
     activeRequest_ = promptBuilder_.build(context, providerConfig());
-    if (tools_ && toolExecutor_ && providerConfig().providerId != QStringLiteral("codex")) {
-        QVector<ToolDefinition> allowed;
+    QVector<ToolDefinition> allowedTools;
+    if (tools_ && toolExecutor_) {
         for (const ToolDefinition& definition : tools_->definitions()) {
-            if (toolExecutor_->canUse(definition.name)) allowed.append(definition);
+            if (toolExecutor_->canUse(definition.name)) allowedTools.append(definition);
         }
-        activeRequest_.tools = allowed;
+    }
+    const bool codex = providerConfig().providerId == QStringLiteral("codex");
+    if (codex) {
+        if (!allowedTools.isEmpty()) {
+            ChatMessage protocol;
+            protocol.role = MessageRole::System;
+            protocol.content = stutter::toolProtocolInstructions(allowedTools);
+            activeRequest_.messages.append(protocol);
+        }
+    } else {
+        activeRequest_.tools = allowedTools;
     }
 
     streamedResponse_.clear();
@@ -258,9 +269,11 @@ void ChatController::handleFinished(const QString& requestId, const ChatResponse
     if (streamedResponse_.isEmpty() && !response.content.isEmpty()) {
         widget_.appendAssistantDelta(response.content);
     }
-    if (!response.content.isEmpty()) {
-        conversations_.appendMessage(stutter::MessageRole::Assistant, response.content);
+    const QString assistantText = stutter::stripToolBlocks(response.content);
+    if (!assistantText.isEmpty()) {
+        conversations_.appendMessage(stutter::MessageRole::Assistant, assistantText);
     }
+    if (provider_ == &codexProvider_ && runTextToolCall(response)) return;
     if (runToolCalls(response)) return;
     widget_.setUsageText(tr("%1 input / %2 output")
         .arg(formatTokenCount(response.usage.inputTokens))
@@ -329,6 +342,37 @@ void ChatController::shrinkOldToolResults() {
             message.content = QStringLiteral("[older tool output omitted]");
         }
     }
+}
+
+bool ChatController::runTextToolCall(const ChatResponse& response) {
+    if (!tools_ || !toolExecutor_) return false;
+    ToolCall call;
+    if (!stutter::parseToolCall(response.content, call)) return false;
+
+    stutter::ToolActivity activity;
+    activity.id = call.id;
+    activity.name = call.name;
+    activity.category = toolCategory(toolExecutor_->permissionFor(call.name));
+    activity.status = stutter::ToolActivityStatus::Running;
+    activity.detail = describeCall(call);
+    widget_.addActivity(activity);
+    emit activityStarted(activity);
+
+    const stutter::ToolResult result = toolExecutor_->execute(call);
+    activity.status = result.success
+        ? stutter::ToolActivityStatus::Succeeded
+        : stutter::ToolActivityStatus::Failed;
+    activity.result = result.success ? result.content : result.error;
+    widget_.updateActivity(activity);
+    emit activityFinished(activity);
+
+    const QString toolResult = result.success
+        ? QStringLiteral("Tool result: %1").arg(truncateToolResult(result.content))
+        : QStringLiteral("Tool error: %1").arg(result.error);
+
+    streamedResponse_.clear();
+    requestId_ = codexProvider_.continueTurn(toolResult);
+    return true;
 }
 
 void ChatController::resetRequest() {
