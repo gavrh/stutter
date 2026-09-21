@@ -41,6 +41,18 @@ CodexSession::CodexSession(CodexRpcClient& rpc, QObject* parent)
                 qint64 outputTokens = 0;
                 readTokenUsage(usage, inputTokens, outputTokens);
                 emit tokenUsage(inputTokens, outputTokens);
+
+                const QJsonObject total = info.value(QStringLiteral("total")).toObject();
+                const qint64 totalTokens = static_cast<qint64>(
+                    total.value(QStringLiteral("totalTokens")).toDouble()
+                );
+                const qint64 contextWindow = static_cast<qint64>(
+                    info.value(QStringLiteral("modelContextWindow")).toDouble()
+                );
+                if (contextWindow > 0 && totalTokens > contextWindow * 3 / 4) {
+                    qWarning() << "Stutter: Codex context usage"
+                               << totalTokens << "/" << contextWindow;
+                }
             } else if (method == QStringLiteral("error")) {
                 const QJsonObject error = params.value(QStringLiteral("error")).toObject();
                 const QString message = error.value(QStringLiteral("message")).toString();

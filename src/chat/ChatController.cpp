@@ -284,8 +284,23 @@ void ChatController::handleFinished(const QString& requestId, const ChatResponse
 
 void ChatController::handleFailure(const QString& requestId, const ProviderError& error) {
     if (requestId != requestId_) return;
-    if (cancellationRequested_) widget_.finishAssistantMessage();
-    else widget_.addErrorMessage(error.message.isEmpty() ? tr("Provider request failed") : error.message);
+    if (cancellationRequested_) {
+        widget_.finishAssistantMessage();
+        resetRequest();
+        return;
+    }
+
+    QString message = error.message;
+    const bool contextLimit =
+        message.contains(QStringLiteral("maximum length"), Qt::CaseInsensitive)
+        || message.contains(QStringLiteral("context length"), Qt::CaseInsensitive)
+        || message.contains(QStringLiteral("contextwindowexceeded"), Qt::CaseInsensitive)
+        || error.code.contains(QStringLiteral("context"), Qt::CaseInsensitive);
+    if (contextLimit) {
+        message = tr("The conversation exceeded the model's context limit. "
+                     "Start a new conversation or narrow the request.");
+    }
+    widget_.addErrorMessage(message.isEmpty() ? tr("Provider request failed") : message);
     resetRequest();
 }
 
