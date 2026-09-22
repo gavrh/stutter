@@ -21,6 +21,7 @@ public:
     QString xrefs(RVA address) const;
     QString commentAt(RVA address) const;
 
+    QString command(const QString& command) const;
     QString functions() const;
     QString strings(int limit) const;
     QString imports() const;

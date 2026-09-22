@@ -64,6 +64,10 @@ QString RizinReader::commentAt(RVA address) const {
     return Core()->getCommentAt(address);
 }
 
+QString RizinReader::command(const QString& command) const {
+    return Core()->cmdRaw(command.toUtf8().constData());
+}
+
 QString RizinReader::functions() const {
     return Core()->cmd(QStringLiteral("afl"));
 }

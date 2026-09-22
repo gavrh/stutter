@@ -40,6 +40,7 @@ void registerAllTools(ToolRegistry& registry, CutterGateway& gateway) {
     registerAnalysisTools(registry, gateway);
     registerMutationTools(registry, gateway);
     registerDebugTools(registry, gateway);
+    registerConsoleTools(registry, gateway);
 }
 
 }

@@ -28,5 +28,6 @@ void registerReadTools(ToolRegistry& registry, CutterGateway& gateway);
 void registerAnalysisTools(ToolRegistry& registry, CutterGateway& gateway);
 void registerMutationTools(ToolRegistry& registry, CutterGateway& gateway);
 void registerDebugTools(ToolRegistry& registry, CutterGateway& gateway);
+void registerConsoleTools(ToolRegistry& registry, CutterGateway& gateway);
 
 }
