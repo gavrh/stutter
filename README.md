@@ -14,10 +14,11 @@ Stutter is an AI assistant built directly into [Cutter](https://cutter.re) and d
 - [x] Provider and model configuration
 - [x] Live analysis context awareness
 - [x] Model-driven tool use
-- [x] Tools to inspect and modify the binary and analysis
+- [x] Tools to inspect and modify the binary, analysis, and debugger
+- [x] Read-only Rizin console for queries without a dedicated tool
 - [x] Inline activity for tool and operation steps
 - [x] Permission controls for state-changing actions
-- [x] Context management for long conversations
+- [x] Context management and token usage for long conversations
 - [ ] Persistence for settings, keys, and conversations
 - [ ] Web search and fetch tools
 - [ ] Per-call approval for changes
