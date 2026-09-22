@@ -67,76 +67,6 @@ void registerReadTools(ToolRegistry& registry, CutterGateway& gateway) {
     ));
 
     registry.add(makeTool(
-        QStringLiteral("list_functions"),
-        QStringLiteral("List analyzed functions in the binary."),
-        toolSchema({}, {}),
-        ToolPermission::Read,
-        [&reader](const QJsonObject&) { return ToolResult::ok(reader.functions()); }
-    ));
-
-    registry.add(makeTool(
-        QStringLiteral("list_strings"),
-        QStringLiteral("List strings found in the binary."),
-        toolSchema(
-            {{QStringLiteral("limit"), integerProperty(QStringLiteral("Maximum strings to return"), 1, 2000)}},
-            {}
-        ),
-        ToolPermission::Read,
-        [&reader](const QJsonObject& arguments) {
-            const int limit = ToolValidator::boundedInt(arguments, QStringLiteral("limit"), 200, 1, 2000);
-            return ToolResult::ok(reader.strings(limit));
-        }
-    ));
-
-    registry.add(makeTool(
-        QStringLiteral("list_imports"),
-        QStringLiteral("List imported symbols."),
-        toolSchema({}, {}),
-        ToolPermission::Read,
-        [&reader](const QJsonObject&) { return ToolResult::ok(reader.imports()); }
-    ));
-
-    registry.add(makeTool(
-        QStringLiteral("list_exports"),
-        QStringLiteral("List exported symbols."),
-        toolSchema({}, {}),
-        ToolPermission::Read,
-        [&reader](const QJsonObject&) { return ToolResult::ok(reader.exports()); }
-    ));
-
-    registry.add(makeTool(
-        QStringLiteral("list_sections"),
-        QStringLiteral("List binary sections."),
-        toolSchema({}, {}),
-        ToolPermission::Read,
-        [&reader](const QJsonObject&) { return ToolResult::ok(reader.sections()); }
-    ));
-
-    registry.add(makeTool(
-        QStringLiteral("disassemble"),
-        QStringLiteral("Disassemble instructions at one or more addresses."),
-        toolSchema(
-            {
-                {QStringLiteral("addresses"), addressesProperty(QStringLiteral("Address or list of addresses"))},
-                {QStringLiteral("count"), integerProperty(QStringLiteral("Instruction count per address"), 1, 200)}
-            },
-            {QStringLiteral("addresses")}
-        ),
-        ToolPermission::Read,
-        [&reader](const QJsonObject& arguments) {
-            QVector<RVA> targets;
-            QString error;
-            if (!ToolValidator::addresses(arguments, targets, error)) {
-                return ToolResult::fail(error);
-            }
-            const int count = ToolValidator::boundedInt(arguments, QStringLiteral("count"), 20, 1, 200);
-            return ToolResult::ok(combineResults(targets, [&reader, count](RVA address) {
-                return reader.disassemble(address, count);
-            }));
-        }
-    ));
-
-    registry.add(makeTool(
         QStringLiteral("disassemble_function"),
         QStringLiteral("Disassemble the whole function for one or more addresses."),
         toolSchema(
@@ -177,13 +107,10 @@ void registerReadTools(ToolRegistry& registry, CutterGateway& gateway) {
     ));
 
     registry.add(makeTool(
-        QStringLiteral("hexdump"),
-        QStringLiteral("Hex dump bytes at one or more addresses."),
+        QStringLiteral("list_xrefs"),
+        QStringLiteral("List cross references to one or more addresses."),
         toolSchema(
-            {
-                {QStringLiteral("addresses"), addressesProperty(QStringLiteral("Address or list of addresses"))},
-                {QStringLiteral("length"), integerProperty(QStringLiteral("Byte count per address"), 1, 4096)}
-            },
+            {{QStringLiteral("addresses"), addressesProperty(QStringLiteral("Address or list of addresses"))}},
             {QStringLiteral("addresses")}
         ),
         ToolPermission::Read,
@@ -193,9 +120,8 @@ void registerReadTools(ToolRegistry& registry, CutterGateway& gateway) {
             if (!ToolValidator::addresses(arguments, targets, error)) {
                 return ToolResult::fail(error);
             }
-            const int length = ToolValidator::boundedInt(arguments, QStringLiteral("length"), 64, 1, 4096);
-            return ToolResult::ok(combineResults(targets, [&reader, length](RVA address) {
-                return reader.hexdump(address, length);
+            return ToolResult::ok(combineResults(targets, [&reader](RVA address) {
+                return reader.xrefs(address);
             }));
         }
     ));
@@ -220,26 +146,6 @@ void registerReadTools(ToolRegistry& registry, CutterGateway& gateway) {
             const int length = ToolValidator::boundedInt(arguments, QStringLiteral("length"), 64, 1, 4096);
             return ToolResult::ok(combineResults(targets, [&reader, length](RVA address) {
                 return ToolValidator::hexBytes(reader.readBytes(address, length));
-            }));
-        }
-    ));
-
-    registry.add(makeTool(
-        QStringLiteral("list_xrefs"),
-        QStringLiteral("List cross references to one or more addresses."),
-        toolSchema(
-            {{QStringLiteral("addresses"), addressesProperty(QStringLiteral("Address or list of addresses"))}},
-            {QStringLiteral("addresses")}
-        ),
-        ToolPermission::Read,
-        [&reader](const QJsonObject& arguments) {
-            QVector<RVA> targets;
-            QString error;
-            if (!ToolValidator::addresses(arguments, targets, error)) {
-                return ToolResult::fail(error);
-            }
-            return ToolResult::ok(combineResults(targets, [&reader](RVA address) {
-                return reader.xrefs(address);
             }));
         }
     ));

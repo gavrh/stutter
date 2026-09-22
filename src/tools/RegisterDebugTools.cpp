@@ -32,30 +32,6 @@ void registerDebugTools(ToolRegistry& registry, CutterGateway& gateway) {
     ));
 
     registry.add(makeTool(
-        QStringLiteral("debug_registers"),
-        QStringLiteral("Return the current register values."),
-        toolSchema({}, {}),
-        ToolPermission::Debugger,
-        [&debugger](const QJsonObject&) {
-            const QString registers = debugger.registers();
-            if (registers.isEmpty()) return ToolResult::fail(QStringLiteral("Not debugging"));
-            return ToolResult::ok(registers);
-        }
-    ));
-
-    registry.add(makeTool(
-        QStringLiteral("debug_backtrace"),
-        QStringLiteral("Return the current call stack."),
-        toolSchema({}, {}),
-        ToolPermission::Debugger,
-        [&debugger](const QJsonObject&) {
-            const QString backtrace = debugger.backtrace();
-            if (backtrace.isEmpty()) return ToolResult::fail(QStringLiteral("Not debugging"));
-            return ToolResult::ok(backtrace);
-        }
-    ));
-
-    registry.add(makeTool(
         QStringLiteral("debug_continue"),
         QStringLiteral("Continue execution."),
         toolSchema({}, {}),
@@ -154,28 +130,6 @@ void registerDebugTools(ToolRegistry& registry, CutterGateway& gateway) {
                 return ToolResult::fail(QStringLiteral("Unable to remove breakpoint"));
             }
             return ToolResult::ok(QStringLiteral("Removed breakpoint at 0x%1").arg(address, 0, 16));
-        }
-    ));
-
-    registry.add(makeTool(
-        QStringLiteral("read_memory"),
-        QStringLiteral("Read process memory at an address as hex."),
-        toolSchema(
-            {
-                {QStringLiteral("address"), addressProperty(QStringLiteral("Memory address"))},
-                {QStringLiteral("length"), integerProperty(QStringLiteral("Byte count"), 1, 4096)}
-            },
-            {QStringLiteral("address")}
-        ),
-        ToolPermission::Debugger,
-        [&debugger](const QJsonObject& arguments) {
-            RVA address = RVA_INVALID;
-            QString error;
-            if (!ToolValidator::address(arguments, QStringLiteral("address"), address, error)) {
-                return ToolResult::fail(error);
-            }
-            const int length = ToolValidator::boundedInt(arguments, QStringLiteral("length"), 64, 1, 4096);
-            return ToolResult::ok(ToolValidator::hexBytes(debugger.readMemory(address, length)));
         }
     ));
 }
