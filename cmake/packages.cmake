@@ -1,7 +1,0 @@
-find_package(Cutter REQUIRED)
-find_package(Rizin REQUIRED)
-find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Network)
-find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Network)
-find_package(SQLite3 REQUIRED)
-find_package(nlohmann_json REQUIRED)
-find_package(toml11 REQUIRED)
