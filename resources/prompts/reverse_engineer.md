@@ -24,5 +24,5 @@ Approach binary-analysis requests as an evidence-driven investigation.
 
 - Keep proposed renames, comments, types, patches, and debugger actions minimal and reviewable.
 - Never perform a mutation merely because it would make the analysis cleaner.
-- When approval is required, present the exact target and intended effect before execution.
-- Verify the resulting state after an approved change and report any discrepancy.
+- For a change enabled by the current permission settings, present the exact target and intended effect before executing it.
+- Verify the resulting state after a change and report any discrepancy.
