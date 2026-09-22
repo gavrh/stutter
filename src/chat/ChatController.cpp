@@ -279,7 +279,7 @@ void ChatController::handleFinished(const QString& requestId, const ChatResponse
     sessionUsage_.outputTokens += response.usage.outputTokens;
     if (provider_ == &codexProvider_ && runTextToolCall(response)) return;
     if (runToolCalls(response)) return;
-    widget_.setUsageText(tr("%1 input / %2 output (session)")
+    widget_.setUsageText(tr("%1 input / %2 output")
         .arg(formatTokenCount(sessionUsage_.inputTokens))
         .arg(formatTokenCount(sessionUsage_.outputTokens)));
     widget_.finishAssistantMessage();
