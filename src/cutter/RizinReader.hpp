@@ -14,19 +14,12 @@ public:
     RVA functionEnd(RVA address) const;
     QString functionName(RVA address) const;
 
-    QString disassemble(RVA address, int instructionCount) const;
     QString disassembleFunction(RVA address) const;
     QString decompile(RVA address) const;
-    QString hexdump(RVA address, int length) const;
     QString xrefs(RVA address) const;
     QString commentAt(RVA address) const;
 
     QString command(const QString& command) const;
-    QString functions() const;
-    QString strings(int limit) const;
-    QString imports() const;
-    QString exports() const;
-    QString sections() const;
 
     QByteArray readBytes(RVA address, int length) const;
 };
