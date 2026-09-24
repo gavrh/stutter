@@ -2,7 +2,7 @@
 
 Stutter is an AI assistant built directly into [Cutter](https://cutter.re) and deeply integrated with it, able to carry out any task for you across the reverse engineering and binary analysis process. Have it work on a target alongside you, ask it for help or even have it teach you, all without leaving Cutter.
 
-![Stutter in Cutter](assets/screenshot.png)
+![Stutter in Cutter](assets/preview.gif)
 
 > [!WARNING]
 > Stutter is under active development and is not ready for general use. Features are incomplete and may change or break without notice.
