@@ -18,7 +18,6 @@ find_package(Rizin REQUIRED)
 find_package(QT NAMES Qt6 Qt5 REQUIRED COMPONENTS Network)
 find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Network)
 find_package(SQLite3 REQUIRED)
-find_package(nlohmann_json REQUIRED)
 find_package(toml11 REQUIRED)
 
 file(GLOB_RECURSE SOURCES CONFIGURE_DEPENDS
@@ -53,7 +52,6 @@ target_link_libraries(
     Rizin::Core
     Qt${QT_VERSION_MAJOR}::Network
     SQLite3::SQLite3
-    nlohmann_json::nlohmann_json
     toml11::toml11
 )
 
