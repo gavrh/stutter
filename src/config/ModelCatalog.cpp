@@ -1,21 +1,24 @@
 #include <config/ModelCatalog.hpp>
 
 #include <QFile>
-
-#include <toml.hpp>
-
-#include <sstream>
-#include <string>
-#include <vector>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
+#include <QJsonParseError>
+#include <QJsonValue>
 
 namespace {
-stutter::ModelCapability capabilityFromName(const std::string& name) {
-    if (name == "text") return stutter::ModelCapability::Text;
-    if (name == "vision") return stutter::ModelCapability::Vision;
-    if (name == "reasoning") return stutter::ModelCapability::Reasoning;
-    if (name == "streaming") return stutter::ModelCapability::Streaming;
-    if (name == "tools") return stutter::ModelCapability::Tools;
+stutter::ModelCapability capabilityFromName(const QString& name) {
+    if (name == QStringLiteral("text")) return stutter::ModelCapability::Text;
+    if (name == QStringLiteral("vision")) return stutter::ModelCapability::Vision;
+    if (name == QStringLiteral("reasoning")) return stutter::ModelCapability::Reasoning;
+    if (name == QStringLiteral("streaming")) return stutter::ModelCapability::Streaming;
+    if (name == QStringLiteral("tools")) return stutter::ModelCapability::Tools;
     return stutter::ModelCapability::None;
+}
+
+qint64 integerValue(const QJsonValue& value) {
+    return static_cast<qint64>(value.toDouble());
 }
 }
 
@@ -26,50 +29,52 @@ ModelCatalog::ModelCatalog(const QString& resourcePath) {
         return;
     }
 
-    try {
-        std::istringstream input(file.readAll().toStdString());
-        const toml::value root = toml::parse(input, resourcePath.toStdString());
-        const auto providers = toml::find<std::vector<toml::value>>(root, "providers");
-        for (const toml::value& providerValue : providers) {
-            const QString providerId = QString::fromStdString(
-                toml::find<std::string>(providerValue, "id")
-            );
-            defaultModels_.insert(providerId, QString::fromStdString(
-                toml::find<std::string>(providerValue, "default_model")
-            ));
-            defaultEndpoints_.insert(providerId, QUrl(QString::fromStdString(
-                toml::find<std::string>(providerValue, "default_endpoint")
-            )));
+    QJsonParseError parseError;
+    const QJsonDocument document = QJsonDocument::fromJson(file.readAll(), &parseError);
+    if (parseError.error != QJsonParseError::NoError) {
+        error_ = parseError.errorString();
+        return;
+    }
+    if (!document.isObject()) {
+        error_ = QStringLiteral("Model catalog root must be an object");
+        return;
+    }
 
-            QVector<stutter::Model> models;
-            const auto modelValues = toml::find<std::vector<toml::value>>(providerValue, "models");
-            for (const toml::value& modelValue : modelValues) {
-                stutter::Model model;
-                model.providerId = providerId;
-                model.id = QString::fromStdString(toml::find<std::string>(modelValue, "id"));
-                model.name = QString::fromStdString(toml::find<std::string>(modelValue, "name"));
-                model.contextWindow = toml::find<qint64>(modelValue, "context_window");
-                model.maxOutputTokens = toml::find<qint64>(modelValue, "max_output_tokens");
-                model.defaultEffort = QString::fromStdString(
-                    toml::find_or<std::string>(modelValue, "default_effort", "")
-                );
-                for (const std::string& effort :
-                     toml::find_or<std::vector<std::string>>(modelValue, "efforts", {})) {
-                    model.supportedEfforts.append(QString::fromStdString(effort));
-                }
-                for (const std::string& capability :
-                     toml::find<std::vector<std::string>>(modelValue, "capabilities")) {
-                    model.capabilities |= capabilityFromName(capability);
-                }
-                models.append(model);
+    const QJsonArray providers = document.object().value(QStringLiteral("providers")).toArray();
+    for (const QJsonValue& providerValue : providers) {
+        const QJsonObject provider = providerValue.toObject();
+        const QString providerId = provider.value(QStringLiteral("id")).toString();
+        defaultModels_.insert(
+            providerId, provider.value(QStringLiteral("default_model")).toString()
+        );
+        defaultEndpoints_.insert(
+            providerId,
+            QUrl(provider.value(QStringLiteral("default_endpoint")).toString())
+        );
+
+        QVector<stutter::Model> models;
+        const QJsonArray modelValues = provider.value(QStringLiteral("models")).toArray();
+        for (const QJsonValue& modelValue : modelValues) {
+            const QJsonObject modelObject = modelValue.toObject();
+            stutter::Model model;
+            model.providerId = providerId;
+            model.id = modelObject.value(QStringLiteral("id")).toString();
+            model.name = modelObject.value(QStringLiteral("name")).toString();
+            model.contextWindow = integerValue(modelObject.value(QStringLiteral("context_window")));
+            model.maxOutputTokens = integerValue(
+                modelObject.value(QStringLiteral("max_output_tokens"))
+            );
+            model.defaultEffort = modelObject.value(QStringLiteral("default_effort")).toString();
+            for (const QJsonValue& effort : modelObject.value(QStringLiteral("efforts")).toArray()) {
+                model.supportedEfforts.append(effort.toString());
             }
-            models_.insert(providerId, models);
+            for (const QJsonValue& capability :
+                 modelObject.value(QStringLiteral("capabilities")).toArray()) {
+                model.capabilities |= capabilityFromName(capability.toString());
+            }
+            models.append(model);
         }
-    } catch (const std::exception& exception) {
-        models_.clear();
-        defaultModels_.clear();
-        defaultEndpoints_.clear();
-        error_ = QString::fromUtf8(exception.what());
+        models_.insert(providerId, models);
     }
 }
 

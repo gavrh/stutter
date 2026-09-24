@@ -33,7 +33,6 @@ Stutter is an AI assistant built directly into [Cutter](https://cutter.re) and d
 - Rizin
 - Qt 6 (or Qt 5)
 - SQLite3
-- toml11
 
 ## Building
 

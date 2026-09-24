@@ -10,7 +10,7 @@
 
 class ModelCatalog {
 public:
-    explicit ModelCatalog(const QString& resourcePath = QStringLiteral(":/stutter/data/models.toml"));
+    explicit ModelCatalog(const QString& resourcePath = QStringLiteral(":/stutter/data/models.json"));
 
     bool isValid() const { return error_.isEmpty(); }
     QString error() const { return error_; }
