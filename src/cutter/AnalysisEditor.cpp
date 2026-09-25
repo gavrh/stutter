@@ -2,20 +2,18 @@
 
 #include <core/Cutter.h>
 
-namespace {
-
-QString hexAddress(RVA address) {
+static QString hexAddress(RVA address) {
     return QStringLiteral("0x") + QString::number(address, 16);
 }
 
-QString functionNameAt(RVA address) {
+static QString functionNameAt(RVA address) {
     const CutterJson info = Core()->cmdj(
         QStringLiteral("afij @ %1").arg(hexAddress(address))
     );
     return info[QStringLiteral("name")].toString();
 }
 
-bool variableNamed(RVA functionAddress, const QString& name) {
+static bool variableNamed(RVA functionAddress, const QString& name) {
     const CutterJson variables = Core()->cmdj(
         QStringLiteral("afvj @ %1").arg(hexAddress(functionAddress))
     );
@@ -26,7 +24,6 @@ bool variableNamed(RVA functionAddress, const QString& name) {
 }
 
 constexpr int instructionProbeBytes = 16;
-}
 
 bool AnalysisEditor::renameFunction(RVA address, const QString& name) {
     if (address == RVA_INVALID || name.isEmpty()) return false;

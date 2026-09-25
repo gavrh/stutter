@@ -8,8 +8,7 @@
 
 #include <functional>
 
-namespace {
-QJsonObject addressesProperty(const QString& description) {
+static QJsonObject addressesProperty(const QString& description) {
     return QJsonObject {
         {QStringLiteral("type"), QJsonArray {
             QStringLiteral("array"), QStringLiteral("string"), QStringLiteral("integer")
@@ -21,7 +20,7 @@ QJsonObject addressesProperty(const QString& description) {
     };
 }
 
-QString combineResults(const QVector<RVA>& addresses, const std::function<QString(RVA)>& render) {
+static QString combineResults(const QVector<RVA>& addresses, const std::function<QString(RVA)>& render) {
     if (addresses.size() == 1) return render(addresses.first());
     QStringList parts;
     for (RVA address : addresses) {
@@ -29,7 +28,6 @@ QString combineResults(const QVector<RVA>& addresses, const std::function<QStrin
         parts.append(render(address));
     }
     return parts.join(QLatin1Char('\n'));
-}
 }
 
 namespace stutter {

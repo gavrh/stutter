@@ -8,8 +8,7 @@
 #include <QTimer>
 #include <QUuid>
 
-namespace {
-bool isActivityItem(const QJsonObject& item) {
+static bool isActivityItem(const QJsonObject& item) {
     const QString type = item.value(QStringLiteral("type")).toString();
     return !type.isEmpty()
         && type != QStringLiteral("agentMessage")
@@ -17,7 +16,7 @@ bool isActivityItem(const QJsonObject& item) {
         && type != QStringLiteral("userMessage");
 }
 
-void appendItemField(const QJsonObject& item, const char* key, QStringList& parts) {
+static void appendItemField(const QJsonObject& item, const char* key, QStringList& parts) {
     const QJsonValue value = item.value(QLatin1String(key));
     if (value.isString()) {
         const QString text = value.toString();
@@ -29,12 +28,12 @@ void appendItemField(const QJsonObject& item, const char* key, QStringList& part
     }
 }
 
-QString firstString(const QJsonObject& object, const char* key) {
+static QString firstString(const QJsonObject& object, const char* key) {
     const QJsonValue value = object.value(QLatin1String(key));
     return value.isString() ? value.toString() : QString();
 }
 
-QString itemSummary(const QJsonObject& item) {
+static QString itemSummary(const QJsonObject& item) {
     const QString type = item.value(QStringLiteral("type")).toString();
     QStringList parts;
 
@@ -65,7 +64,7 @@ QString itemSummary(const QJsonObject& item) {
     return parts.join(QLatin1Char('\n'));
 }
 
-QString stripCitations(const QString& text) {
+static QString stripCitations(const QString& text) {
     static const QRegularExpression pattern(
         QStringLiteral(R"((?:cite\s*)?turn\d+[a-z]+\d+)"),
         QRegularExpression::CaseInsensitiveOption
@@ -75,7 +74,7 @@ QString stripCitations(const QString& text) {
     return result;
 }
 
-QString itemResult(const QJsonObject& item) {
+static QString itemResult(const QJsonObject& item) {
     const char* keys[] = {"aggregatedOutput", "output", "result", "text"};
     for (const char* key : keys) {
         const QString value = item.value(QLatin1String(key)).toString();
@@ -84,7 +83,7 @@ QString itemResult(const QJsonObject& item) {
     return {};
 }
 
-QString roleName(MessageRole role) {
+static QString roleName(MessageRole role) {
     switch (role) {
     case MessageRole::System: return QStringLiteral("System");
     case MessageRole::User: return QStringLiteral("User");
@@ -92,7 +91,6 @@ QString roleName(MessageRole role) {
     case MessageRole::Tool: return QStringLiteral("Tool");
     }
     return QStringLiteral("User");
-}
 }
 
 CodexProvider::CodexProvider(QObject* parent)

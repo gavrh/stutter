@@ -22,8 +22,7 @@
 
 #include <functional>
 
-namespace {
-QString truncateLines(const QString& text, int maxLines) {
+static QString truncateLines(const QString& text, int maxLines) {
     const QStringList lines = text.split(QLatin1Char('\n'));
     if (lines.size() <= maxLines) return text;
     const int hidden = lines.size() - maxLines;
@@ -78,7 +77,6 @@ private:
     static constexpr int minimumInputHeight = 64;
     static constexpr int maximumInputHeight = 160;
 };
-}
 
 ChatWidget::ChatWidget(MainWindow* mainWindow) : CutterDockWidget(mainWindow) {
     setObjectName(QStringLiteral("StutterChat"));

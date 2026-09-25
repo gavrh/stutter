@@ -6,11 +6,9 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-namespace {
-void readTokenUsage(const QJsonObject& object, qint64& inputTokens, qint64& outputTokens) {
+static void readTokenUsage(const QJsonObject& object, qint64& inputTokens, qint64& outputTokens) {
     inputTokens = static_cast<qint64>(object.value(QStringLiteral("inputTokens")).toDouble());
     outputTokens = static_cast<qint64>(object.value(QStringLiteral("outputTokens")).toDouble());
-}
 }
 
 CodexSession::CodexSession(CodexRpcClient& rpc, QObject* parent)

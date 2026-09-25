@@ -17,10 +17,9 @@
 
 #include <utility>
 
-namespace {
 constexpr int maxToolResultChars = 12000;
 
-QJsonArray toolCallsToJson(const QVector<ToolCall>& calls) {
+static QJsonArray toolCallsToJson(const QVector<ToolCall>& calls) {
     QJsonArray array;
     for (const ToolCall& call : calls) {
         array.append(QJsonObject {
@@ -32,13 +31,13 @@ QJsonArray toolCallsToJson(const QVector<ToolCall>& calls) {
     return array;
 }
 
-QString truncateToolResult(const QString& text) {
+static QString truncateToolResult(const QString& text) {
     if (text.size() <= maxToolResultChars) return text;
     return text.left(maxToolResultChars)
         + QStringLiteral("\n... [truncated %1 characters]").arg(text.size() - maxToolResultChars);
 }
 
-stutter::ToolActivityCategory toolCategory(stutter::ToolPermission permission) {
+static stutter::ToolActivityCategory toolCategory(stutter::ToolPermission permission) {
     switch (permission) {
     case stutter::ToolPermission::Read: return stutter::ToolActivityCategory::Reader;
     case stutter::ToolPermission::Analysis: return stutter::ToolActivityCategory::Analysis;
@@ -48,14 +47,14 @@ stutter::ToolActivityCategory toolCategory(stutter::ToolPermission permission) {
     return stutter::ToolActivityCategory::Provider;
 }
 
-QString describeCall(const ToolCall& call) {
+static QString describeCall(const ToolCall& call) {
     if (call.arguments.isEmpty()) return call.rawArguments;
     return QString::fromUtf8(
         QJsonDocument(call.arguments).toJson(QJsonDocument::Indented)
     );
 }
 
-QString formatTokenCount(qint64 count) {
+static QString formatTokenCount(qint64 count) {
     if (count < 1000) {
         return QString::number(count);
     }
@@ -63,7 +62,6 @@ QString formatTokenCount(qint64 count) {
         return QString::number(count / 1000.0, 'f', 1) + QStringLiteral("k");
     }
     return QString::number(count / 1000000.0, 'f', 1) + QStringLiteral("m");
-}
 }
 
 ChatController::ChatController(

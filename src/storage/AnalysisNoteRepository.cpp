@@ -7,11 +7,10 @@
 
 namespace stutter {
 
-namespace {
 const QString kSelectColumns =
     QStringLiteral("id, binary_id, address, category, title, content, confidence, created_at, updated_at");
 
-stutter::AnalysisNote readNote(Statement& statement) {
+static stutter::AnalysisNote readNote(Statement& statement) {
     stutter::AnalysisNote note;
     note.id = statement.text(0);
     note.binaryId = statement.text(1);
@@ -23,7 +22,6 @@ stutter::AnalysisNote readNote(Statement& statement) {
     note.createdAt = storage::fromStorage(statement.text(7));
     note.updatedAt = storage::fromStorage(statement.text(8));
     return note;
-}
 }
 
 AnalysisNoteRepository::AnalysisNoteRepository(Database& database) : database_(database) {}

@@ -13,8 +13,7 @@
 
 #include <utility>
 
-namespace {
-QString roleName(MessageRole role) {
+static QString roleName(MessageRole role) {
     switch (role) {
     case MessageRole::System: return QStringLiteral("system");
     case MessageRole::User: return QStringLiteral("user");
@@ -24,7 +23,7 @@ QString roleName(MessageRole role) {
     return QStringLiteral("user");
 }
 
-QUrl endpointFor(QUrl baseUrl) {
+static QUrl endpointFor(QUrl baseUrl) {
     if (baseUrl.isEmpty()) {
         baseUrl = QUrl(QStringLiteral("https://api.openai.com/"));
     }
@@ -41,7 +40,7 @@ QUrl endpointFor(QUrl baseUrl) {
     return baseUrl;
 }
 
-QJsonObject requestBody(const ChatRequest& request, bool includeStreamUsage) {
+static QJsonObject requestBody(const ChatRequest& request, bool includeStreamUsage) {
     QJsonArray messages;
     for (const ChatMessage& message : request.messages) {
         QJsonObject object {
@@ -105,7 +104,7 @@ QJsonObject requestBody(const ChatRequest& request, bool includeStreamUsage) {
     return body;
 }
 
-ProviderError responseError(QNetworkReply* reply, const QByteArray& body) {
+static ProviderError responseError(QNetworkReply* reply, const QByteArray& body) {
     const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     const QJsonObject root = QJsonDocument::fromJson(body).object();
     const QJsonObject object = root.value(QStringLiteral("error")).toObject();
@@ -118,7 +117,6 @@ ProviderError responseError(QNetworkReply* reply, const QByteArray& body) {
     }
     error.retryable = status == 408 || status == 409 || status == 429 || status >= 500;
     return error;
-}
 }
 
 struct OpenAIProvider::RequestState {

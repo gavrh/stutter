@@ -14,8 +14,7 @@
 
 #include <utility>
 
-namespace {
-QUrl endpointFor(QUrl baseUrl) {
+static QUrl endpointFor(QUrl baseUrl) {
     if (baseUrl.isEmpty()) {
         baseUrl = QUrl(QStringLiteral("https://api.anthropic.com/"));
     }
@@ -30,7 +29,7 @@ QUrl endpointFor(QUrl baseUrl) {
     return baseUrl;
 }
 
-QJsonObject requestBody(const ChatRequest& request) {
+static QJsonObject requestBody(const ChatRequest& request) {
     QJsonArray messages;
     QStringList systemParts;
     for (const ChatMessage& message : request.messages) {
@@ -97,7 +96,7 @@ QJsonObject requestBody(const ChatRequest& request) {
     return body;
 }
 
-ProviderError responseError(QNetworkReply* reply, const QByteArray& body) {
+static ProviderError responseError(QNetworkReply* reply, const QByteArray& body) {
     const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
     const QJsonObject object = QJsonDocument::fromJson(body).object()
         .value(QStringLiteral("error")).toObject();
@@ -108,7 +107,6 @@ ProviderError responseError(QNetworkReply* reply, const QByteArray& body) {
     if (error.message.isEmpty()) error.message = reply->errorString();
     error.retryable = status == 408 || status == 409 || status == 429 || status >= 500;
     return error;
-}
 }
 
 struct AnthropicProvider::RequestState {

@@ -4,8 +4,7 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-namespace {
-MessageRole providerRole(stutter::MessageRole role) {
+static MessageRole providerRole(stutter::MessageRole role) {
     switch (role) {
     case stutter::MessageRole::System: return MessageRole::System;
     case stutter::MessageRole::User: return MessageRole::User;
@@ -13,7 +12,6 @@ MessageRole providerRole(stutter::MessageRole role) {
     case stutter::MessageRole::Tool: return MessageRole::Tool;
     }
     return MessageRole::User;
-}
 }
 
 PromptBuilder::PromptBuilder() {

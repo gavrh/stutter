@@ -4,8 +4,7 @@
 
 #include <QFile>
 
-namespace {
-QString roleName(stutter::MessageRole role) {
+static QString roleName(stutter::MessageRole role) {
     switch (role) {
     case stutter::MessageRole::System: return QStringLiteral("System");
     case stutter::MessageRole::User: return QStringLiteral("User");
@@ -13,7 +12,6 @@ QString roleName(stutter::MessageRole role) {
     case stutter::MessageRole::Tool: return QStringLiteral("Tool");
     }
     return {};
-}
 }
 
 HistorySummarizer::HistorySummarizer() {

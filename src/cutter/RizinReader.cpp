@@ -2,10 +2,8 @@
 
 #include <core/Cutter.h>
 
-namespace {
-QString addressString(RVA value) {
+static QString addressString(RVA value) {
     return QStringLiteral("0x") + QString::number(value, 16);
-}
 }
 
 bool RizinReader::isReady() const {

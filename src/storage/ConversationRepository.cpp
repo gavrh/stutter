@@ -7,11 +7,10 @@
 
 namespace stutter {
 
-namespace {
 const QString kSelectColumns =
     QStringLiteral("id, binary_id, title, summary, created_at, updated_at");
 
-stutter::Conversation readConversation(Statement& statement) {
+static stutter::Conversation readConversation(Statement& statement) {
     stutter::Conversation conversation;
     conversation.id = statement.text(0);
     conversation.binaryId = statement.text(1);
@@ -20,7 +19,6 @@ stutter::Conversation readConversation(Statement& statement) {
     conversation.createdAt = storage::fromStorage(statement.text(4));
     conversation.updatedAt = storage::fromStorage(statement.text(5));
     return conversation;
-}
 }
 
 ConversationRepository::ConversationRepository(Database& database) : database_(database) {}

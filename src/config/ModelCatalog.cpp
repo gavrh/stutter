@@ -7,8 +7,7 @@
 #include <QJsonParseError>
 #include <QJsonValue>
 
-namespace {
-stutter::ModelCapability capabilityFromName(const QString& name) {
+static stutter::ModelCapability capabilityFromName(const QString& name) {
     if (name == QStringLiteral("text")) return stutter::ModelCapability::Text;
     if (name == QStringLiteral("vision")) return stutter::ModelCapability::Vision;
     if (name == QStringLiteral("reasoning")) return stutter::ModelCapability::Reasoning;
@@ -17,9 +16,8 @@ stutter::ModelCapability capabilityFromName(const QString& name) {
     return stutter::ModelCapability::None;
 }
 
-qint64 integerValue(const QJsonValue& value) {
+static qint64 integerValue(const QJsonValue& value) {
     return static_cast<qint64>(value.toDouble());
-}
 }
 
 ModelCatalog::ModelCatalog(const QString& resourcePath) {

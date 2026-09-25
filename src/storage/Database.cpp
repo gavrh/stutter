@@ -11,14 +11,12 @@
 
 namespace stutter {
 
-namespace {
-QStringList migrationScripts() {
+static QStringList migrationScripts() {
     QDir directory(QStringLiteral(":/stutter/migrations"));
     if (!directory.exists()) {
         return {};
     }
     return directory.entryList({QStringLiteral("*.sql")}, QDir::Files, QDir::Name);
-}
 }
 
 Database::~Database() {

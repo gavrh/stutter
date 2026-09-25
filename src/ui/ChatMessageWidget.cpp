@@ -12,8 +12,7 @@
 #include <QVBoxLayout>
 #include <QtMath>
 
-namespace {
-QString wrapLongRuns(const QString& text, int maxRun = 32) {
+static QString wrapLongRuns(const QString& text, int maxRun = 32) {
     QString result;
     result.reserve(text.size() + text.size() / maxRun);
     int run = 0;
@@ -41,7 +40,7 @@ QString wrapLongRuns(const QString& text, int maxRun = 32) {
     return result;
 }
 
-QString titleFor(ChatMessageKind kind) {
+static QString titleFor(ChatMessageKind kind) {
     switch (kind) {
     case ChatMessageKind::User: return QStringLiteral("You");
     case ChatMessageKind::Assistant: return QStringLiteral("Stutter");
@@ -51,13 +50,13 @@ QString titleFor(ChatMessageKind kind) {
     return {};
 }
 
-QString escapedWrapped(const QString& text) {
+static QString escapedWrapped(const QString& text) {
     QString value = wrapLongRuns(text.toHtmlEscaped());
     value.replace(QLatin1Char('\n'), QStringLiteral("<br>"));
     return value;
 }
 
-QString activityHtml(const stutter::ToolActivity& activity) {
+static QString activityHtml(const stutter::ToolActivity& activity) {
     QString html = QStringLiteral("<b>%1</b>").arg(activity.name.toHtmlEscaped());
     if (!activity.detail.isEmpty()) {
         html += QStringLiteral("<br>%1").arg(escapedWrapped(activity.detail));
@@ -66,7 +65,6 @@ QString activityHtml(const stutter::ToolActivity& activity) {
         html += QStringLiteral("<br>%1").arg(escapedWrapped(activity.result));
     }
     return html;
-}
 }
 
 class ActivityBlock final : public QWidget {

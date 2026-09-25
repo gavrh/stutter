@@ -7,14 +7,12 @@
 
 namespace stutter {
 
-namespace {
-const QRegularExpression& blockPattern() {
+static const QRegularExpression& blockPattern() {
     static const QRegularExpression pattern(
         QStringLiteral(R"(```stutter-tool\s*([\s\S]*?)\s*```)"),
         QRegularExpression::DotMatchesEverythingOption
     );
     return pattern;
-}
 }
 
 QString toolProtocolInstructions(const QVector<ToolDefinition>& tools) {

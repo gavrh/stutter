@@ -12,11 +12,10 @@
 
 namespace stutter {
 
-namespace {
 const QString kSelectColumns =
     QStringLiteral("id, sha256, path, name, version, project_path, created_at, updated_at");
 
-stutter::BinaryIdentity readBinary(Statement& statement) {
+static stutter::BinaryIdentity readBinary(Statement& statement) {
     stutter::BinaryIdentity identity;
     identity.id = statement.text(0);
     identity.sha256 = statement.text(1);
@@ -27,7 +26,7 @@ stutter::BinaryIdentity readBinary(Statement& statement) {
     return identity;
 }
 
-QString computeSha256(const QString& path) {
+static QString computeSha256(const QString& path) {
     QFile file(path);
     if (!file.open(QIODevice::ReadOnly)) {
         return {};
@@ -37,7 +36,6 @@ QString computeSha256(const QString& path) {
         return {};
     }
     return QString::fromLatin1(hash.result().toHex());
-}
 }
 
 BinaryRepository::BinaryRepository(Database& database) : database_(database) {}

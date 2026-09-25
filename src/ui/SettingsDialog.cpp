@@ -13,8 +13,7 @@
 #include <QLineEdit>
 #include <QVBoxLayout>
 
-namespace {
-QString effortName(const QString& effort) {
+static QString effortName(const QString& effort) {
     if (effort == QStringLiteral("none")) return SettingsDialog::tr("None");
     if (effort == QStringLiteral("low")) return SettingsDialog::tr("Low");
     if (effort == QStringLiteral("medium")) return SettingsDialog::tr("Medium");
@@ -25,7 +24,7 @@ QString effortName(const QString& effort) {
     return effort;
 }
 
-QString nearestLowerEffort(const QString& effort, const QStringList& supported) {
+static QString nearestLowerEffort(const QString& effort, const QStringList& supported) {
     const QStringList order {
         QStringLiteral("none"),
         QStringLiteral("low"),
@@ -39,7 +38,6 @@ QString nearestLowerEffort(const QString& effort, const QStringList& supported) 
         if (supported.contains(order.at(index))) return order.at(index);
     }
     return supported.isEmpty() ? QString() : supported.first();
-}
 }
 
 SettingsDialog::SettingsDialog(

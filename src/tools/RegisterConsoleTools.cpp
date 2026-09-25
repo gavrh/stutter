@@ -5,9 +5,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace {
-
-bool hasForbiddenCharacters(const QString& text) {
+static bool hasForbiddenCharacters(const QString& text) {
     for (const QChar character : text) {
         if (character == QLatin1Char('\n') || character == QLatin1Char('\r')
             || character == QLatin1Char('|') || character == QLatin1Char('>')
@@ -20,18 +18,18 @@ bool hasForbiddenCharacters(const QString& text) {
     return false;
 }
 
-bool startsWithAny(const QString& token, const QStringList& prefixes) {
+static bool startsWithAny(const QString& token, const QStringList& prefixes) {
     for (const QString& prefix : prefixes) {
         if (token.startsWith(prefix)) return true;
     }
     return false;
 }
 
-bool hasAssignment(const QString& segment) {
+static bool hasAssignment(const QString& segment) {
     return segment.contains(QLatin1Char('='));
 }
 
-bool isReadOnlyAnalysis(const QString& token, const QString& segment) {
+static bool isReadOnlyAnalysis(const QString& token, const QString& segment) {
     if (startsWithAny(token, {
             QStringLiteral("afl"), QStringLiteral("afo"), QStringLiteral("afx"),
             QStringLiteral("afM"), QStringLiteral("afd")
@@ -122,7 +120,7 @@ bool isReadOnlyAnalysis(const QString& token, const QString& segment) {
     return false;
 }
 
-bool isReadOnlyDebug(const QString& token, const QString& segment) {
+static bool isReadOnlyDebug(const QString& token, const QString& segment) {
     if (token == QStringLiteral("dr")) return !hasAssignment(segment);
     if (token.startsWith(QStringLiteral("dbt"))) return true;
     if (token.startsWith(QStringLiteral("di"))) return true;
@@ -159,7 +157,7 @@ bool isReadOnlyDebug(const QString& token, const QString& segment) {
     return false;
 }
 
-bool isReadOnlyCommand(const QString& segment) {
+static bool isReadOnlyCommand(const QString& segment) {
     const QString token = segment.section(QLatin1Char(' '), 0, 0);
     if (token.isEmpty()) return false;
     if (token == QStringLiteral("help")) return true;
@@ -264,14 +262,13 @@ bool isReadOnlyCommand(const QString& segment) {
     return false;
 }
 
-QStringList splitCommands(const QString& command) {
+static QStringList splitCommands(const QString& command) {
     QStringList segments;
     for (const QString& part : command.split(QLatin1Char(';'))) {
         const QString trimmed = part.trimmed();
         if (!trimmed.isEmpty()) segments.append(trimmed);
     }
     return segments;
-}
 }
 
 namespace stutter {

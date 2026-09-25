@@ -7,9 +7,7 @@
 #include <QJsonObject>
 #include <QStringList>
 
-namespace {
-
-QJsonObject addressesProperty(const QString& description) {
+static QJsonObject addressesProperty(const QString& description) {
     return QJsonObject {
         {QStringLiteral("type"), QJsonArray {
             QStringLiteral("array"), QStringLiteral("string"), QStringLiteral("integer")
@@ -31,7 +29,7 @@ struct CommentItem {
     QString comment;
 };
 
-bool parseRenames(const QJsonObject& arguments, QVector<RenameItem>& out, QString& error) {
+static bool parseRenames(const QJsonObject& arguments, QVector<RenameItem>& out, QString& error) {
     const QJsonValue renames = arguments.value(QStringLiteral("renames"));
     if (renames.isArray()) {
         for (const QJsonValue& value : renames.toArray()) {
@@ -58,7 +56,7 @@ bool parseRenames(const QJsonObject& arguments, QVector<RenameItem>& out, QStrin
     return true;
 }
 
-bool parseComments(const QJsonObject& arguments, QVector<CommentItem>& out, QString& error) {
+static bool parseComments(const QJsonObject& arguments, QVector<CommentItem>& out, QString& error) {
     const QJsonValue comments = arguments.value(QStringLiteral("comments"));
     if (comments.isArray()) {
         for (const QJsonValue& value : comments.toArray()) {
@@ -83,7 +81,6 @@ bool parseComments(const QJsonObject& arguments, QVector<CommentItem>& out, QStr
     if (!stutter::ToolValidator::requiredString(arguments, QStringLiteral("comment"), entry.comment, error)) return false;
     out.append(entry);
     return true;
-}
 }
 
 namespace stutter {

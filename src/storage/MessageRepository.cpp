@@ -8,11 +8,10 @@
 
 namespace stutter {
 
-namespace {
 const QString kSelectColumns =
     QStringLiteral("id, conversation_id, role, content, tool_call_id, tool_name, tool_arguments, created_at, tool_calls");
 
-stutter::Message readMessage(Statement& statement) {
+static stutter::Message readMessage(Statement& statement) {
     stutter::Message message;
     message.id = statement.text(0);
     message.conversationId = statement.text(1);
@@ -30,19 +29,18 @@ stutter::Message readMessage(Statement& statement) {
     return message;
 }
 
-QString serializeArguments(const QJsonObject& arguments) {
+static QString serializeArguments(const QJsonObject& arguments) {
     if (arguments.isEmpty()) {
         return {};
     }
     return QString::fromUtf8(QJsonDocument(arguments).toJson(QJsonDocument::Compact));
 }
 
-QString serializeToolCalls(const QJsonArray& toolCalls) {
+static QString serializeToolCalls(const QJsonArray& toolCalls) {
     if (toolCalls.isEmpty()) {
         return {};
     }
     return QString::fromUtf8(QJsonDocument(toolCalls).toJson(QJsonDocument::Compact));
-}
 }
 
 MessageRepository::MessageRepository(Database& database) : database_(database) {}

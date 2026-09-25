@@ -5,13 +5,11 @@
 #include <QJsonArray>
 #include <QJsonObject>
 
-namespace {
-QJsonObject addressProperty(const QString& description) {
+static QJsonObject addressProperty(const QString& description) {
     return QJsonObject {
         {QStringLiteral("type"), QJsonArray {QStringLiteral("string"), QStringLiteral("integer")}},
         {QStringLiteral("description"), description}
     };
-}
 }
 
 namespace stutter {
