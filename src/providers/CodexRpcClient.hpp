@@ -3,6 +3,7 @@
 #include <QHash>
 #include <QJsonObject>
 #include <QObject>
+#include <QTimer>
 
 #include <functional>
 
@@ -27,14 +28,21 @@ signals:
     void protocolError(const QString& message);
 
 private:
+    struct PendingRequest {
+        ReplyHandler handler;
+        qint64 startedAt = 0;
+    };
+
     void initialize();
     void consume(const QByteArray& bytes);
     void handleMessage(const QJsonObject& message);
     void send(const QJsonObject& message);
+    void checkTimeouts();
 
     CodexProcess& process_;
     QByteArray buffer_;
-    QHash<qint64, ReplyHandler> pending_;
+    QHash<qint64, PendingRequest> pending_;
+    QTimer timeoutTimer_;
     qint64 nextId_ = 1;
     bool ready_ = false;
 };

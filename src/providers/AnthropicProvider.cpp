@@ -140,6 +140,7 @@ QString AnthropicProvider::send(const ChatRequest& request) {
     }
 
     QNetworkRequest networkRequest(baseUrl_);
+    networkRequest.setTransferTimeout(120000);
     networkRequest.setHeader(QNetworkRequest::ContentTypeHeader, QStringLiteral("application/json"));
     networkRequest.setRawHeader("Accept", "text/event-stream");
     networkRequest.setRawHeader("x-api-key", apiKey_.toUtf8());

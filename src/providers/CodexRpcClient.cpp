@@ -4,7 +4,11 @@
 
 #include <constants.h>
 
+#include <QDateTime>
 #include <QJsonDocument>
+#include <QVector>
+
+#include <utility>
 
 CodexRpcClient::CodexRpcClient(CodexProcess& process, QObject* parent)
     : QObject(parent), process_(process) {
@@ -15,6 +19,10 @@ CodexRpcClient::CodexRpcClient(CodexProcess& process, QObject* parent)
         pending_.clear();
     });
     connect(&process_, &CodexProcess::errorOccurred, this, &CodexRpcClient::protocolError);
+
+    timeoutTimer_.setInterval(5000);
+    connect(&timeoutTimer_, &QTimer::timeout, this, &CodexRpcClient::checkTimeouts);
+    timeoutTimer_.start();
 }
 
 void CodexRpcClient::start() {
@@ -31,7 +39,9 @@ qint64 CodexRpcClient::request(
     ReplyHandler handler
 ) {
     const qint64 id = nextId_++;
-    if (handler) pending_.insert(id, std::move(handler));
+    if (handler) {
+        pending_.insert(id, PendingRequest {std::move(handler), QDateTime::currentMSecsSinceEpoch()});
+    }
     send(QJsonObject {
         {QStringLiteral("method"), method},
         {QStringLiteral("id"), id},
@@ -87,12 +97,16 @@ void CodexRpcClient::handleMessage(const QJsonObject& message) {
     if (message.contains(QStringLiteral("id")) &&
         (message.contains(QStringLiteral("result")) || message.contains(QStringLiteral("error")))) {
         const qint64 id = static_cast<qint64>(message.value(QStringLiteral("id")).toDouble());
-        const ReplyHandler handler = pending_.take(id);
-        if (handler) {
-            handler(
-                message.value(QStringLiteral("result")).toObject(),
-                message.value(QStringLiteral("error")).toObject()
-            );
+        const auto iterator = pending_.find(id);
+        if (iterator != pending_.end()) {
+            ReplyHandler handler = std::move(iterator->handler);
+            pending_.erase(iterator);
+            if (handler) {
+                handler(
+                    message.value(QStringLiteral("result")).toObject(),
+                    message.value(QStringLiteral("error")).toObject()
+                );
+            }
         }
         return;
     }
@@ -111,6 +125,32 @@ void CodexRpcClient::handleMessage(const QJsonObject& message) {
             {QStringLiteral("message"), QStringLiteral("Client method not implemented")}
         }}
     });
+}
+
+void CodexRpcClient::checkTimeouts() {
+    constexpr qint64 requestTimeoutMs = 120000;
+    const qint64 now = QDateTime::currentMSecsSinceEpoch();
+
+    QVector<qint64> expired;
+    for (auto iterator = pending_.cbegin(); iterator != pending_.cend(); ++iterator) {
+        if (now - iterator.value().startedAt > requestTimeoutMs) {
+            expired.append(iterator.key());
+        }
+    }
+
+    for (qint64 id : expired) {
+        const auto iterator = pending_.find(id);
+        if (iterator == pending_.end()) continue;
+        ReplyHandler handler = std::move(iterator->handler);
+        pending_.erase(iterator);
+        if (handler) {
+            handler({}, QJsonObject {
+                {QStringLiteral("code"), -32000},
+                {QStringLiteral("message"), tr("Codex request timed out")}
+            });
+        }
+        emit protocolError(tr("Codex request timed out"));
+    }
 }
 
 void CodexRpcClient::send(const QJsonObject& message) {
