@@ -104,12 +104,12 @@ void ChatController::submit(const QString& text) {
         widget_.addErrorMessage(promptBuilder_.error());
         return;
     }
+    if (!selectProvider()) return;
     if (binaryProvider_) {
         conversations_.setBinary(binaryProvider_());
     }
     conversations_.appendMessage(stutter::MessageRole::User, text);
     widget_.addUserMessage(text);
-    if (!selectProvider()) return;
 
     rebuildActiveRequest();
 
