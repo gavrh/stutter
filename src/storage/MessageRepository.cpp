@@ -10,7 +10,7 @@ namespace stutter {
 
 namespace {
 const QString kSelectColumns =
-    QStringLiteral("id, conversation_id, role, content, tool_call_id, tool_name, tool_arguments, created_at");
+    QStringLiteral("id, conversation_id, role, content, tool_call_id, tool_name, tool_arguments, created_at, tool_calls");
 
 stutter::Message readMessage(Statement& statement) {
     stutter::Message message;
@@ -24,6 +24,9 @@ stutter::Message readMessage(Statement& statement) {
         message.toolArguments = QJsonDocument::fromJson(statement.text(6).toUtf8()).object();
     }
     message.createdAt = storage::fromStorage(statement.text(7));
+    if (!statement.isNull(8)) {
+        message.toolCalls = QJsonDocument::fromJson(statement.text(8).toUtf8()).array();
+    }
     return message;
 }
 
@@ -32,6 +35,13 @@ QString serializeArguments(const QJsonObject& arguments) {
         return {};
     }
     return QString::fromUtf8(QJsonDocument(arguments).toJson(QJsonDocument::Compact));
+}
+
+QString serializeToolCalls(const QJsonArray& toolCalls) {
+    if (toolCalls.isEmpty()) {
+        return {};
+    }
+    return QString::fromUtf8(QJsonDocument(toolCalls).toJson(QJsonDocument::Compact));
 }
 }
 
@@ -62,15 +72,17 @@ bool MessageRepository::save(const stutter::Message& message) {
         message.createdAt.isValid() ? message.createdAt : QDateTime::currentDateTimeUtc()
     );
     const QString arguments = serializeArguments(message.toolArguments);
+    const QString toolCalls = serializeToolCalls(message.toolCalls);
 
     Statement statement(
         database_,
         QStringLiteral(
-            "INSERT INTO messages(id, conversation_id, role, content, tool_call_id, tool_name, tool_arguments, created_at) "
-            "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) "
+            "INSERT INTO messages(id, conversation_id, role, content, tool_call_id, tool_name, tool_arguments, created_at, tool_calls) "
+            "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8, ?9) "
             "ON CONFLICT(id) DO UPDATE SET "
             "content = excluded.content, tool_call_id = excluded.tool_call_id, "
-            "tool_name = excluded.tool_name, tool_arguments = excluded.tool_arguments"
+            "tool_name = excluded.tool_name, tool_arguments = excluded.tool_arguments, "
+            "tool_calls = excluded.tool_calls"
         )
     );
     statement.bind(1, message.id);
@@ -81,6 +93,7 @@ bool MessageRepository::save(const stutter::Message& message) {
     if (message.toolName.isEmpty()) statement.bindNull(6); else statement.bind(6, message.toolName);
     if (arguments.isEmpty()) statement.bindNull(7); else statement.bind(7, arguments);
     statement.bind(8, createdAt);
+    if (toolCalls.isEmpty()) statement.bindNull(9); else statement.bind(9, toolCalls);
     statement.next();
     return statement.error().isEmpty();
 }

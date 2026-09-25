@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QDateTime>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QString>
 
@@ -21,6 +22,7 @@ struct Message {
     QString toolCallId;
     QString toolName;
     QJsonObject toolArguments;
+    QJsonArray toolCalls;
     QDateTime createdAt;
 };
 

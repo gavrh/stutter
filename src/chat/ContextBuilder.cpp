@@ -28,6 +28,13 @@ ChatContext ContextBuilder::build(
         context.messages.prepend(*iterator);
         remaining -= tokens;
     }
+    // A truncated window must not start with a tool result whose assistant
+    // tool call was dropped.
+    while (!context.messages.isEmpty()
+           && context.messages.first().role == stutter::MessageRole::Tool) {
+        context.messages.removeFirst();
+        context.historyTruncated = true;
+    }
     context.historyTruncated = context.historyTruncated || context.messages.size() < messages.size();
     return context;
 }

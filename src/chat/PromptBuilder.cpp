@@ -1,6 +1,8 @@
 #include <chat/PromptBuilder.hpp>
 
 #include <QFile>
+#include <QJsonArray>
+#include <QJsonObject>
 
 namespace {
 MessageRole providerRole(stutter::MessageRole role) {
@@ -50,6 +52,14 @@ ChatRequest PromptBuilder::build(
         providerMessage.role = providerRole(message.role);
         providerMessage.content = message.content;
         providerMessage.toolCallId = message.toolCallId;
+        for (const QJsonValue& value : message.toolCalls) {
+            const QJsonObject object = value.toObject();
+            ToolCall call;
+            call.id = object.value(QStringLiteral("id")).toString();
+            call.name = object.value(QStringLiteral("name")).toString();
+            call.arguments = object.value(QStringLiteral("arguments")).toObject();
+            providerMessage.toolCalls.append(call);
+        }
         request.messages.append(providerMessage);
     }
     return request;

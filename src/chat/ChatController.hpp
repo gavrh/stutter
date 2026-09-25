@@ -66,8 +66,8 @@ private:
     void handleEvent(const ProviderEvent& event);
     void handleFinished(const QString& requestId, const ChatResponse& response);
     void handleFailure(const QString& requestId, const ProviderError& error);
-    bool runToolCalls(const ChatResponse& response);
-    bool runTextToolCall(const ChatResponse& response);
+    bool runToolCalls(const ChatResponse& response, const QString& assistantText);
+    bool runTextToolCall(const ChatResponse& response, const QString& assistantText);
     void shrinkOldToolResults();
     void resetRequest();
 

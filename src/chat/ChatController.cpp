@@ -21,6 +21,18 @@ namespace {
 constexpr int maxToolResultChars = 12000;
 constexpr int keepRecentToolResults = 6;
 
+QJsonArray toolCallsToJson(const QVector<ToolCall>& calls) {
+    QJsonArray array;
+    for (const ToolCall& call : calls) {
+        array.append(QJsonObject {
+            {QStringLiteral("id"), call.id},
+            {QStringLiteral("name"), call.name},
+            {QStringLiteral("arguments"), call.arguments}
+        });
+    }
+    return array;
+}
+
 QString truncateToolResult(const QString& text) {
     if (text.size() <= maxToolResultChars) return text;
     return text.left(maxToolResultChars)
@@ -116,8 +128,7 @@ void ChatController::submit(const QString& text) {
             if (toolExecutor_->canUse(definition.name)) allowedTools.append(definition);
         }
     }
-    const bool codex = providerConfig().providerId == QStringLiteral("codex");
-    if (codex) {
+    if (providerConfig().providerId == QStringLiteral("codex")) {
         if (!allowedTools.isEmpty()) {
             ChatMessage protocol;
             protocol.role = MessageRole::System;
@@ -272,13 +283,17 @@ void ChatController::handleFinished(const QString& requestId, const ChatResponse
         widget_.appendAssistantDelta(response.content);
     }
     const QString assistantText = stutter::stripToolBlocks(response.content);
+    sessionUsage_.inputTokens += response.usage.inputTokens;
+    sessionUsage_.outputTokens += response.usage.outputTokens;
+    if (provider_ == &codexProvider_) {
+        if (runTextToolCall(response, assistantText)) return;
+    } else if (runToolCalls(response, assistantText)) {
+        return;
+    }
+
     if (!assistantText.isEmpty()) {
         conversations_.appendMessage(stutter::MessageRole::Assistant, assistantText);
     }
-    sessionUsage_.inputTokens += response.usage.inputTokens;
-    sessionUsage_.outputTokens += response.usage.outputTokens;
-    if (provider_ == &codexProvider_ && runTextToolCall(response)) return;
-    if (runToolCalls(response)) return;
     widget_.setUsageText(tr("%1 input / %2 output")
         .arg(formatTokenCount(sessionUsage_.inputTokens))
         .arg(formatTokenCount(sessionUsage_.outputTokens)));
@@ -308,15 +323,21 @@ void ChatController::handleFailure(const QString& requestId, const ProviderError
     resetRequest();
 }
 
-bool ChatController::runToolCalls(const ChatResponse& response) {
+bool ChatController::runToolCalls(const ChatResponse& response, const QString& assistantText) {
     if (response.toolCalls.isEmpty()) return false;
     if (!tools_ || !toolExecutor_) return false;
 
-    ChatMessage assistantMessage;
-    assistantMessage.role = MessageRole::Assistant;
-    assistantMessage.content = response.content;
-    assistantMessage.toolCalls = response.toolCalls;
-    activeRequest_.messages.append(assistantMessage);
+    stutter::Message assistantMessage;
+    assistantMessage.role = stutter::MessageRole::Assistant;
+    assistantMessage.content = assistantText;
+    assistantMessage.toolCalls = toolCallsToJson(response.toolCalls);
+    conversations_.appendMessage(assistantMessage);
+
+    ChatMessage requestAssistantMessage;
+    requestAssistantMessage.role = MessageRole::Assistant;
+    requestAssistantMessage.content = response.content;
+    requestAssistantMessage.toolCalls = response.toolCalls;
+    activeRequest_.messages.append(requestAssistantMessage);
 
     for (const ToolCall& call : response.toolCalls) {
         stutter::ToolActivity activity;
@@ -336,13 +357,21 @@ bool ChatController::runToolCalls(const ChatResponse& response) {
         widget_.updateActivity(activity);
         emit activityFinished(activity);
 
-        ChatMessage toolMessage;
-        toolMessage.role = MessageRole::Tool;
+        stutter::Message toolMessage;
+        toolMessage.role = stutter::MessageRole::Tool;
         toolMessage.toolCallId = call.id;
+        toolMessage.toolName = call.name;
+        toolMessage.toolArguments = call.arguments;
         toolMessage.content = result.success
             ? truncateToolResult(result.content)
             : QStringLiteral("Error: %1").arg(result.error);
-        activeRequest_.messages.append(toolMessage);
+        conversations_.appendMessage(toolMessage);
+
+        ChatMessage requestToolMessage;
+        requestToolMessage.role = MessageRole::Tool;
+        requestToolMessage.toolCallId = call.id;
+        requestToolMessage.content = toolMessage.content;
+        activeRequest_.messages.append(requestToolMessage);
     }
 
     shrinkOldToolResults();
@@ -363,10 +392,16 @@ void ChatController::shrinkOldToolResults() {
     }
 }
 
-bool ChatController::runTextToolCall(const ChatResponse& response) {
+bool ChatController::runTextToolCall(const ChatResponse& response, const QString& assistantText) {
     if (!tools_ || !toolExecutor_) return false;
     ToolCall call;
     if (!stutter::parseToolCall(response.content, call)) return false;
+
+    stutter::Message assistantMessage;
+    assistantMessage.role = stutter::MessageRole::Assistant;
+    assistantMessage.content = assistantText;
+    assistantMessage.toolCalls = toolCallsToJson(QVector<ToolCall> {call});
+    conversations_.appendMessage(assistantMessage);
 
     stutter::ToolActivity activity;
     activity.id = call.id;
@@ -384,6 +419,16 @@ bool ChatController::runTextToolCall(const ChatResponse& response) {
     activity.result = result.success ? result.content : result.error;
     widget_.updateActivity(activity);
     emit activityFinished(activity);
+
+    stutter::Message toolMessage;
+    toolMessage.role = stutter::MessageRole::Tool;
+    toolMessage.toolCallId = call.id;
+    toolMessage.toolName = call.name;
+    toolMessage.toolArguments = call.arguments;
+    toolMessage.content = result.success
+        ? truncateToolResult(result.content)
+        : QStringLiteral("Error: %1").arg(result.error);
+    conversations_.appendMessage(toolMessage);
 
     const QString toolResult = result.success
         ? QStringLiteral("Tool result: %1").arg(truncateToolResult(result.content))
