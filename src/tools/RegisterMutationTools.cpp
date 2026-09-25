@@ -7,18 +7,6 @@
 #include <QJsonObject>
 #include <QStringList>
 
-static QJsonObject addressesProperty(const QString& description) {
-    return QJsonObject {
-        {QStringLiteral("type"), QJsonArray {
-            QStringLiteral("array"), QStringLiteral("string"), QStringLiteral("integer")
-        }},
-        {QStringLiteral("items"), QJsonObject {
-            {QStringLiteral("type"), QJsonArray {QStringLiteral("string"), QStringLiteral("integer")}}
-        }},
-        {QStringLiteral("description"), description}
-    };
-}
-
 struct RenameItem {
     RVA address = RVA_INVALID;
     QString name;
