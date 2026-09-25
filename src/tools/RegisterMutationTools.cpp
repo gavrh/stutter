@@ -372,7 +372,11 @@ void registerMutationTools(ToolRegistry& registry, CutterGateway& gateway) {
         ),
         ToolPermission::Binary,
         [&binaryEditor](const QJsonObject& arguments) {
-            const bool enabled = arguments.value(QStringLiteral("enabled")).toBool();
+            const QJsonValue value = arguments.value(QStringLiteral("enabled"));
+            if (!value.isBool()) {
+                return ToolResult::fail(QStringLiteral("enabled must be a boolean"));
+            }
+            const bool enabled = value.toBool();
             binaryEditor.setWriteMode(enabled);
             return ToolResult::ok(QStringLiteral("Write mode %1")
                 .arg(enabled ? QStringLiteral("enabled") : QStringLiteral("disabled")));
