@@ -48,11 +48,6 @@ public:
     );
     ~ChatController() override;
 
-signals:
-    void activityStarted(const stutter::ToolActivity& activity);
-    void activityUpdated(const stutter::ToolActivity& activity);
-    void activityFinished(const stutter::ToolActivity& activity);
-
 private:
     void submit(const QString& text);
     void stop();

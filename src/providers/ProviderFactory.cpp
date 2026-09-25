@@ -1,7 +1,6 @@
 #include <providers/ProviderFactory.hpp>
 
 #include <providers/AnthropicProvider.hpp>
-#include <providers/CodexProvider.hpp>
 #include <providers/OpenAIProvider.hpp>
 
 #include <stdexcept>
@@ -29,9 +28,5 @@ std::unique_ptr<Provider> ProviderFactory::create(
             config.endpoint
         );
     }
-    if (config.providerId == QStringLiteral("codex")) {
-        return std::make_unique<CodexProvider>();
-    }
-
     throw std::invalid_argument("Unknown provider type");
 }

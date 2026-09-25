@@ -9,16 +9,6 @@ bool DebuggerGateway::isDebugging() const {
     return core->dbg && core->dbg->pid > 0;
 }
 
-QString DebuggerGateway::registers() const {
-    if (!isDebugging()) return {};
-    return Core()->cmd(QStringLiteral("drj"));
-}
-
-QString DebuggerGateway::backtrace() const {
-    if (!isDebugging()) return {};
-    return Core()->cmd(QStringLiteral("dbt"));
-}
-
 void DebuggerGateway::continueExecution() const {
     if (isDebugging()) Core()->continueDebug();
 }
@@ -51,8 +41,4 @@ bool DebuggerGateway::removeBreakpoint(RVA address) const {
     if (address == RVA_INVALID) return false;
     Core()->delBreakpoint(address);
     return !Core()->getBreakpointsAddresses().contains(address);
-}
-
-QByteArray DebuggerGateway::readMemory(RVA address, int length) const {
-    return Core()->ioRead(address, qMax(1, length));
 }
