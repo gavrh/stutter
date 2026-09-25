@@ -7,6 +7,11 @@
 
 class RizinReader {
 public:
+    struct CommandResult {
+        QString output;
+        bool success = true;
+    };
+
     bool isReady() const;
     QString fileName() const;
     RVA currentAddress() const;
@@ -19,7 +24,7 @@ public:
     QString xrefs(RVA address) const;
     QString commentAt(RVA address) const;
 
-    QString command(const QString& command) const;
+    CommandResult command(const QString& command) const;
 
     QByteArray readBytes(RVA address, int length) const;
 };

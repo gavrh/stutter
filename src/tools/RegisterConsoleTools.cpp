@@ -313,7 +313,12 @@ void registerConsoleTools(ToolRegistry& registry, CutterGateway& gateway) {
                         "Command is not allowed by the read-only console policy: %1"
                     ).arg(segment.section(QLatin1Char(' '), 0, 0)));
                 }
-                outputs.append(reader.command(segment));
+                const RizinReader::CommandResult result = reader.command(segment);
+                if (!result.success) {
+                    return ToolResult::fail(QStringLiteral("Command failed: %1")
+                        .arg(segment.section(QLatin1Char(' '), 0, 0)));
+                }
+                outputs.append(result.output);
             }
             const QString output = outputs.join(QLatin1Char('\n'));
             return ToolResult::ok(output.isEmpty() ? QStringLiteral("No output.") : output);
