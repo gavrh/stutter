@@ -4,12 +4,6 @@
 
 #include <rz_core.h>
 
-namespace {
-QString addressString(RVA value) {
-    return QStringLiteral("0x") + QString::number(value, 16);
-}
-}
-
 bool DebuggerGateway::isDebugging() const {
     RzCoreLocked core(Core());
     return core->dbg && core->dbg->pid > 0;
@@ -47,14 +41,16 @@ void DebuggerGateway::stop() const {
 
 bool DebuggerGateway::setBreakpoint(RVA address) const {
     if (address == RVA_INVALID) return false;
-    Core()->cmd(QStringLiteral("db %1").arg(addressString(address)));
-    return true;
+    BreakpointDescription breakpoint;
+    breakpoint.addr = address;
+    Core()->addBreakpoint(breakpoint);
+    return Core()->getBreakpointsAddresses().contains(address);
 }
 
 bool DebuggerGateway::removeBreakpoint(RVA address) const {
     if (address == RVA_INVALID) return false;
-    Core()->cmd(QStringLiteral("db- %1").arg(addressString(address)));
-    return true;
+    Core()->delBreakpoint(address);
+    return !Core()->getBreakpointsAddresses().contains(address);
 }
 
 QByteArray DebuggerGateway::readMemory(RVA address, int length) const {
