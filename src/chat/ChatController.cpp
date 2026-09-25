@@ -227,7 +227,9 @@ stutter::ProviderConfig ChatController::providerConfig() const {
     config.effort = settings_.effort();
     const stutter::Model model = selectedModel();
     if (model.maxOutputTokens > 0) {
-        config.maxOutputTokens = static_cast<int>(qMin<qint64>(model.maxOutputTokens, 16384));
+        config.maxOutputTokens = static_cast<int>(
+            qMin<qint64>(model.maxOutputTokens, stutter::maxRequestedOutputTokens)
+        );
     }
     return config;
 }

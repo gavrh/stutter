@@ -7,6 +7,8 @@
 
 namespace stutter {
 
+constexpr qint64 maxRequestedOutputTokens = 16384;
+
 enum class ModelCapability : quint32 {
     None = 0,
     Text = 1 << 0,

@@ -13,9 +13,10 @@ ChatContext ContextBuilder::build(
     context.analysisContext = analysisContext;
 
     const qint64 contextWindow = model.contextWindow > 0 ? model.contextWindow : 128000;
-    const qint64 outputReserve = model.maxOutputTokens > 0
-        ? qMin<qint64>(model.maxOutputTokens, contextWindow / 4)
+    const qint64 requestedOutput = model.maxOutputTokens > 0
+        ? qMin<qint64>(model.maxOutputTokens, stutter::maxRequestedOutputTokens)
         : 4096;
+    const qint64 outputReserve = qMin<qint64>(requestedOutput, contextWindow / 4);
     qint64 remaining = qMax<qint64>(4096, contextWindow - outputReserve - 2048);
     remaining -= estimateTokens(summary) + estimateTokens(analysisContext);
 
