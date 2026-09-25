@@ -68,7 +68,7 @@ private:
     void handleFailure(const QString& requestId, const ProviderError& error);
     bool runToolCalls(const ChatResponse& response, const QString& assistantText);
     bool runTextToolCall(const ChatResponse& response, const QString& assistantText);
-    void shrinkOldToolResults();
+    void rebuildActiveRequest();
     void resetRequest();
 
     ChatWidget& widget_;

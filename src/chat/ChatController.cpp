@@ -19,7 +19,6 @@
 
 namespace {
 constexpr int maxToolResultChars = 12000;
-constexpr int keepRecentToolResults = 6;
 
 QJsonArray toolCallsToJson(const QVector<ToolCall>& calls) {
     QJsonArray array;
@@ -114,6 +113,16 @@ void ChatController::submit(const QString& text) {
     widget_.addUserMessage(text);
     if (!selectProvider()) return;
 
+    rebuildActiveRequest();
+
+    streamedResponse_.clear();
+    cancellationRequested_ = false;
+    widget_.setBusy(true);
+    widget_.beginAssistantMessage()->setTitle(assistantTitle());
+    requestId_ = provider_->send(activeRequest_);
+}
+
+void ChatController::rebuildActiveRequest() {
     const stutter::Model model = selectedModel();
     const ChatContext context = contextBuilder_.build(
         conversations_.messages(),
@@ -122,6 +131,7 @@ void ChatController::submit(const QString& text) {
         model
     );
     activeRequest_ = promptBuilder_.build(context, providerConfig());
+
     QVector<ToolDefinition> allowedTools;
     if (tools_ && toolExecutor_) {
         for (const ToolDefinition& definition : tools_->definitions()) {
@@ -138,12 +148,6 @@ void ChatController::submit(const QString& text) {
     } else {
         activeRequest_.tools = allowedTools;
     }
-
-    streamedResponse_.clear();
-    cancellationRequested_ = false;
-    widget_.setBusy(true);
-    widget_.beginAssistantMessage()->setTitle(assistantTitle());
-    requestId_ = provider_->send(activeRequest_);
 }
 
 void ChatController::stop() {
@@ -333,12 +337,6 @@ bool ChatController::runToolCalls(const ChatResponse& response, const QString& a
     assistantMessage.toolCalls = toolCallsToJson(response.toolCalls);
     conversations_.appendMessage(assistantMessage);
 
-    ChatMessage requestAssistantMessage;
-    requestAssistantMessage.role = MessageRole::Assistant;
-    requestAssistantMessage.content = response.content;
-    requestAssistantMessage.toolCalls = response.toolCalls;
-    activeRequest_.messages.append(requestAssistantMessage);
-
     for (const ToolCall& call : response.toolCalls) {
         stutter::ToolActivity activity;
         activity.id = call.id;
@@ -366,30 +364,12 @@ bool ChatController::runToolCalls(const ChatResponse& response, const QString& a
             ? truncateToolResult(result.content)
             : QStringLiteral("Error: %1").arg(result.error);
         conversations_.appendMessage(toolMessage);
-
-        ChatMessage requestToolMessage;
-        requestToolMessage.role = MessageRole::Tool;
-        requestToolMessage.toolCallId = call.id;
-        requestToolMessage.content = toolMessage.content;
-        activeRequest_.messages.append(requestToolMessage);
     }
 
-    shrinkOldToolResults();
+    rebuildActiveRequest();
     streamedResponse_.clear();
     requestId_ = provider_->send(activeRequest_);
     return true;
-}
-
-void ChatController::shrinkOldToolResults() {
-    int seen = 0;
-    for (int index = activeRequest_.messages.size() - 1; index >= 0; --index) {
-        ChatMessage& message = activeRequest_.messages[index];
-        if (message.role != MessageRole::Tool) continue;
-        ++seen;
-        if (seen > keepRecentToolResults && message.content.size() > 160) {
-            message.content = QStringLiteral("[older tool output omitted]");
-        }
-    }
 }
 
 bool ChatController::runTextToolCall(const ChatResponse& response, const QString& assistantText) {
