@@ -57,8 +57,8 @@ ChatWidget* StutterContext::createChatWidget(MainWindow* mainWindow) {
         messageRepository_,
         toolRegistry_,
         *toolExecutor_,
-        [mainWindow]() -> stutter::BinaryIdentity {
-            return stutter::BinaryRepository::identityFromPath(mainWindow->getFilename());
+        [this, mainWindow]() -> stutter::BinaryIdentity {
+            return binaryRepository_.identityFromPath(mainWindow->getFilename());
         },
         [this, mainWindow]() -> QString {
             return cutterGateway_.analysisContext(mainWindow->getFilename());

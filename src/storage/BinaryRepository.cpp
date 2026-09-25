@@ -7,8 +7,13 @@
 #include <QDateTime>
 #include <QFile>
 #include <QFileInfo>
-#include <QHash>
+#include <QMutexLocker>
+#include <QRunnable>
+#include <QThreadPool>
 #include <QUuid>
+
+#include <functional>
+#include <utility>
 
 namespace stutter {
 
@@ -37,6 +42,17 @@ static QString computeSha256(const QString& path) {
     }
     return QString::fromLatin1(hash.result().toHex());
 }
+
+class FunctionRunnable final : public QRunnable {
+public:
+    explicit FunctionRunnable(std::function<void()> function)
+        : function_(std::move(function)) {}
+
+    void run() override { function_(); }
+
+private:
+    std::function<void()> function_;
+};
 
 BinaryRepository::BinaryRepository(Database& database) : database_(database) {}
 
@@ -133,20 +149,29 @@ stutter::BinaryIdentity BinaryRepository::identityFromPath(const QString& path) 
     identity.path = path;
     identity.name = QFileInfo(path).fileName();
 
-    static QHash<QString, QString> cache;
-    static QHash<QString, QPair<qint64, qint64>> signatures;
-
     const QFileInfo info(path);
     const QPair<qint64, qint64> signature {info.size(), info.lastModified().toMSecsSinceEpoch()};
-    const auto cached = signatures.constFind(path);
-    if (cached != signatures.constEnd() && cached.value() == signature) {
-        identity.sha256 = cache.value(path);
+
+    QMutexLocker locker(&cacheMutex_);
+    const auto cached = signatures_.constFind(path);
+    if (cached != signatures_.constEnd() && cached.value() == signature) {
+        identity.sha256 = hashes_.value(path);
         return identity;
     }
+    if (pending_.contains(path)) {
+        identity.sha256 = hashes_.value(path);
+        return identity;
+    }
+    pending_.insert(path);
+    locker.unlock();
 
-    identity.sha256 = computeSha256(path);
-    signatures.insert(path, signature);
-    cache.insert(path, identity.sha256);
+    QThreadPool::globalInstance()->start(new FunctionRunnable([this, path, signature] {
+        const QString sha256 = computeSha256(path);
+        QMutexLocker lock(&cacheMutex_);
+        signatures_.insert(path, signature);
+        hashes_.insert(path, sha256);
+        pending_.remove(path);
+    }));
     return identity;
 }
 
