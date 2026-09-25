@@ -223,9 +223,15 @@ void OpenAIProvider::finishReply(QNetworkReply* reply) {
     }
     std::unique_ptr<RequestState> state = std::move(iterator->second);
     requests_.erase(iterator);
-    readReply(reply);
 
+    const QByteArray remaining = reply->readAll();
     const int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
+    if (status >= 400) {
+        state->errorBody.append(remaining);
+    } else {
+        processEvents(*state, state->parser.push(remaining));
+    }
+
     if ((reply->error() != QNetworkReply::NoError || status >= 400) && !state->failed) {
         state->failed = true;
         emit failed(state->id, responseError(reply, state->errorBody));
