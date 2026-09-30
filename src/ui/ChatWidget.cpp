@@ -1,6 +1,5 @@
 #include <ui/ChatWidget.hpp>
 
-#include <ui/AnalysisContextWidget.hpp>
 #include <ui/ChatMessageWidget.hpp>
 
 #include <constants.h>
@@ -102,8 +101,6 @@ ChatWidget::ChatWidget(MainWindow* mainWindow) : CutterDockWidget(mainWindow) {
     controls->addWidget(sendButton_);
     controls->addWidget(stopButton_);
 
-    analysisContext_ = new AnalysisContextWidget(content);
-
     messageScroll_ = new QScrollArea(content);
     messageScroll_->setWidgetResizable(true);
     messageScroll_->setFrameShape(QFrame::NoFrame);
@@ -134,12 +131,9 @@ ChatWidget::ChatWidget(MainWindow* mainWindow) : CutterDockWidget(mainWindow) {
 
     auto* footer = new QHBoxLayout;
     usageLabel_ = new QLabel(tr("No usage data"), content);
-    auto* version = new QLabel(QString(STUTTER_VERSION_STR.data()), content);
     footer->addWidget(usageLabel_);
     footer->addStretch();
-    footer->addWidget(version);
 
-    root->addWidget(analysisContext_);
     root->addWidget(messageScroll_, 1);
     root->addLayout(controls);
     root->addWidget(input_);

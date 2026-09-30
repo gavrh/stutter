@@ -6,7 +6,6 @@
 
 #include <QHash>
 
-class AnalysisContextWidget;
 class ChatMessageWidget;
 class QLabel;
 class MainWindow;
@@ -22,7 +21,6 @@ class ChatWidget final : public CutterDockWidget {
 public:
     explicit ChatWidget(MainWindow* mainWindow);
 
-    AnalysisContextWidget* analysisContextWidget() const { return analysisContext_; }
     ChatMessageWidget* addUserMessage(const QString& content);
     ChatMessageWidget* addAssistantMessage(const QString& content);
     ChatMessageWidget* beginAssistantMessage();
@@ -48,7 +46,6 @@ private:
     void submitInput();
     bool isNearBottom() const;
 
-    AnalysisContextWidget* analysisContext_;
     QScrollArea* messageScroll_;
     QWidget* messageContainer_;
     QVBoxLayout* messageLayout_;

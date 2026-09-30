@@ -33,7 +33,7 @@ public:
     CodexProvider* codexProvider() { return &codexProvider_; }
 
 private:
-    void updateAnalysisContext(MainWindow* mainWindow);
+    void refreshConversation(MainWindow* mainWindow);
 
     ModelCatalog modelCatalog_;
     CodexProvider codexProvider_;
