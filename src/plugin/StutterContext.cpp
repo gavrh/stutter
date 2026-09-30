@@ -2,6 +2,7 @@
 
 #include <chat/ChatController.hpp>
 #include <domain/BinaryIdentity.hpp>
+#include <storage/StorageMaintenance.hpp>
 #include <ui/AnalysisContextWidget.hpp>
 #include <ui/ChatWidget.hpp>
 #include <ui/SettingsDialog.hpp>
@@ -21,7 +22,9 @@ ChatWidget* StutterContext::createChatWidget(MainWindow* mainWindow) {
 
     if (!database_.isOpen()) {
         database_.open(stutter::Database::defaultDatabasePath());
-        database_.applyMigrations();
+        if (database_.applyMigrations()) {
+            stutter::runStorageMaintenance(database_, binaryRepository_, conversationRepository_);
+        }
     }
 
     settingsDialog_ = new SettingsDialog(

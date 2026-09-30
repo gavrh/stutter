@@ -178,4 +178,29 @@ stutter::BinaryIdentity BinaryRepository::identityFromPath(const QString& path) 
     return identity;
 }
 
+QVector<stutter::BinaryIdentity> BinaryRepository::all() {
+    QVector<stutter::BinaryIdentity> binaries;
+    if (!database_.isOpen()) {
+        return binaries;
+    }
+    Statement statement(
+        database_,
+        QStringLiteral("SELECT %1 FROM binaries").arg(kSelectColumns)
+    );
+    while (statement.next()) {
+        binaries.append(readBinary(statement));
+    }
+    return binaries;
+}
+
+bool BinaryRepository::remove(const QString& id) {
+    if (!database_.isOpen() || id.isEmpty()) {
+        return false;
+    }
+    Statement statement(database_, QStringLiteral("DELETE FROM binaries WHERE id = ?1"));
+    statement.bind(1, id);
+    statement.next();
+    return statement.error().isEmpty();
+}
+
 }

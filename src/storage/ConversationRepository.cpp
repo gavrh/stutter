@@ -99,6 +99,31 @@ bool ConversationRepository::remove(const QString& conversationId) {
     return statement.error().isEmpty();
 }
 
+bool ConversationRepository::removeForBinary(const QString& binaryId) {
+    if (!database_.isOpen()) {
+        return false;
+    }
+    Statement statement(database_, QStringLiteral("DELETE FROM conversations WHERE binary_id = ?1"));
+    statement.bind(1, binaryId);
+    statement.next();
+    return statement.error().isEmpty();
+}
+
+QDateTime ConversationRepository::latestUpdatedAt(const QString& binaryId) {
+    if (!database_.isOpen()) {
+        return {};
+    }
+    Statement statement(
+        database_,
+        QStringLiteral("SELECT MAX(updated_at) FROM conversations WHERE binary_id = ?1")
+    );
+    statement.bind(1, binaryId);
+    if (statement.next() && !statement.isNull(0)) {
+        return storage::fromStorage(statement.text(0));
+    }
+    return {};
+}
+
 bool ConversationRepository::updateSummary(const QString& conversationId, const QString& summary) {
     if (!database_.isOpen()) {
         return false;

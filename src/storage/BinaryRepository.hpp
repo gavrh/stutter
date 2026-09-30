@@ -7,6 +7,7 @@
 #include <QPair>
 #include <QSet>
 #include <QString>
+#include <QVector>
 
 namespace stutter {
 
@@ -18,6 +19,9 @@ public:
 
     stutter::BinaryIdentity resolve(const stutter::BinaryIdentity& identity);
     stutter::BinaryIdentity identityFromPath(const QString& path);
+
+    QVector<stutter::BinaryIdentity> all();
+    bool remove(const QString& id);
 
 private:
     Database& database_;
