@@ -18,7 +18,9 @@
 namespace stutter {
 
 const QString kSelectColumns =
-    QStringLiteral("id, sha256, path, name, version, project_path, created_at, updated_at");
+    QStringLiteral(
+        "id, sha256, path, name, version, project_path, created_at, updated_at, last_seen_at"
+    );
 
 static stutter::BinaryIdentity readBinary(Statement& statement) {
     stutter::BinaryIdentity identity;
@@ -28,6 +30,9 @@ static stutter::BinaryIdentity readBinary(Statement& statement) {
     identity.name = statement.text(3);
     identity.version = statement.text(4);
     identity.projectPath = statement.text(5);
+    identity.createdAt = storage::fromStorage(statement.text(6));
+    identity.updatedAt = storage::fromStorage(statement.text(7));
+    identity.lastSeenAt = storage::fromStorage(statement.text(8));
     return identity;
 }
 
@@ -72,27 +77,24 @@ stutter::BinaryIdentity BinaryRepository::resolve(const stutter::BinaryIdentity&
         if (statement.next()) {
             const stutter::BinaryIdentity existing = readBinary(statement);
             result.id = existing.id;
+            result.createdAt = existing.createdAt;
 
-            const bool changed = existing.sha256 != identity.sha256
-                || existing.name != identity.name
-                || existing.version != identity.version
-                || existing.projectPath != identity.projectPath;
-            if (changed) {
-                Statement update(
-                    database_,
-                    QStringLiteral(
-                        "UPDATE binaries SET sha256 = ?1, name = ?2, version = ?3, "
-                        "project_path = ?4, updated_at = ?5 WHERE id = ?6"
-                    )
-                );
-                update.bind(1, identity.sha256);
-                update.bind(2, identity.name);
-                update.bind(3, identity.version);
-                update.bind(4, identity.projectPath);
-                update.bind(5, now);
-                update.bind(6, existing.id);
-                update.next();
-            }
+            Statement update(
+                database_,
+                QStringLiteral(
+                    "UPDATE binaries SET "
+                    "sha256 = CASE WHEN ?1 <> '' THEN ?1 ELSE sha256 END, "
+                    "name = ?2, version = ?3, project_path = ?4, "
+                    "updated_at = ?5, last_seen_at = ?5 WHERE id = ?6"
+                )
+            );
+            update.bind(1, identity.sha256);
+            update.bind(2, identity.name);
+            update.bind(3, identity.version);
+            update.bind(4, identity.projectPath);
+            update.bind(5, now);
+            update.bind(6, existing.id);
+            update.next();
             return result;
         }
     }
@@ -106,12 +108,13 @@ stutter::BinaryIdentity BinaryRepository::resolve(const stutter::BinaryIdentity&
         if (statement.next()) {
             const stutter::BinaryIdentity existing = readBinary(statement);
             result.id = existing.id;
+            result.createdAt = existing.createdAt;
 
             Statement update(
                 database_,
                 QStringLiteral(
                     "UPDATE binaries SET path = ?1, name = ?2, version = ?3, "
-                    "project_path = ?4, updated_at = ?5 WHERE id = ?6"
+                    "project_path = ?4, updated_at = ?5, last_seen_at = ?5 WHERE id = ?6"
                 )
             );
             update.bind(1, identity.path);
@@ -129,8 +132,8 @@ stutter::BinaryIdentity BinaryRepository::resolve(const stutter::BinaryIdentity&
     Statement insert(
         database_,
         QStringLiteral(
-            "INSERT INTO binaries(id, sha256, path, name, version, project_path, created_at, updated_at) "
-            "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?7)"
+            "INSERT INTO binaries(id, sha256, path, name, version, project_path, created_at, updated_at, last_seen_at) "
+            "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?7, ?7)"
         )
     );
     insert.bind(1, result.id);
