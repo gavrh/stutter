@@ -1,0 +1,2 @@
+ALTER TABLE messages ADD COLUMN model TEXT;
+ALTER TABLE messages ADD COLUMN effort TEXT;

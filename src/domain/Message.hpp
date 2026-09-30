@@ -23,6 +23,8 @@ struct Message {
     QString toolName;
     QJsonObject toolArguments;
     QJsonArray toolCalls;
+    QString model;
+    QString effort;
     QDateTime createdAt;
 };
 

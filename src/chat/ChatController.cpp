@@ -115,6 +115,10 @@ void ChatController::submit(const QString& text) {
     conversations_.appendMessage(stutter::MessageRole::User, text);
     widget_.addUserMessage(text);
 
+    const stutter::Model model = selectedModel();
+    activeModelName_ = model.name.isEmpty() ? settings_.model() : model.name;
+    activeEffort_ = settings_.effort();
+
     rebuildActiveRequest();
 
     streamedResponse_.clear();
@@ -176,9 +180,11 @@ void ChatController::renderConversation() {
         case stutter::MessageRole::User:
             widget_.addUserMessage(message.content);
             break;
-        case stutter::MessageRole::Assistant:
-            widget_.addAssistantMessage(message.content);
+        case stutter::MessageRole::Assistant: {
+            ChatMessageWidget* assistant = widget_.addAssistantMessage(message.content);
+            assistant->setTitle(assistantTitle(message.model, message.effort));
             break;
+        }
         case stutter::MessageRole::Tool:
             widget_.addToolMessage(message.toolName, message.content);
             break;
@@ -239,13 +245,14 @@ stutter::ProviderConfig ChatController::providerConfig() const {
 }
 
 QString ChatController::assistantTitle() const {
-    const stutter::Model model = selectedModel();
+    return assistantTitle(activeModelName_, activeEffort_);
+}
+
+QString ChatController::assistantTitle(const QString& modelName, const QString& effort) {
     QString title = QStringLiteral("Stutter");
-    const QString modelName = model.name.isEmpty() ? settings_.model() : model.name;
     if (!modelName.isEmpty()) {
         title += QStringLiteral(" - ") + modelName;
     }
-    const QString effort = settings_.effort();
     if (!effort.isEmpty() && effort != QStringLiteral("none")) {
         title += QStringLiteral(" (") + effort + QStringLiteral(")");
     }
@@ -297,7 +304,12 @@ void ChatController::handleFinished(const QString& requestId, const ChatResponse
     }
 
     if (!assistantText.isEmpty()) {
-        conversations_.appendMessage(stutter::MessageRole::Assistant, assistantText);
+        stutter::Message assistant;
+        assistant.role = stutter::MessageRole::Assistant;
+        assistant.content = assistantText;
+        assistant.model = activeModelName_;
+        assistant.effort = activeEffort_;
+        conversations_.appendMessage(assistant);
     }
     widget_.setUsageText(tr("%1 input / %2 output")
         .arg(formatTokenCount(sessionUsage_.inputTokens))
@@ -336,6 +348,8 @@ bool ChatController::runToolCalls(const ChatResponse& response, const QString& a
     assistantMessage.role = stutter::MessageRole::Assistant;
     assistantMessage.content = assistantText;
     assistantMessage.toolCalls = toolCallsToJson(response.toolCalls);
+    assistantMessage.model = activeModelName_;
+    assistantMessage.effort = activeEffort_;
     conversations_.appendMessage(assistantMessage);
 
     for (const ToolCall& call : response.toolCalls) {
@@ -380,6 +394,8 @@ bool ChatController::runTextToolCall(const ChatResponse& response, const QString
     assistantMessage.role = stutter::MessageRole::Assistant;
     assistantMessage.content = assistantText;
     assistantMessage.toolCalls = toolCallsToJson(QVector<ToolCall> {call});
+    assistantMessage.model = activeModelName_;
+    assistantMessage.effort = activeEffort_;
     conversations_.appendMessage(assistantMessage);
 
     stutter::ToolActivity activity;

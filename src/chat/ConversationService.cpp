@@ -85,15 +85,27 @@ stutter::Message ConversationService::appendMessage(
 
 void ConversationService::appendMessage(const stutter::Message& message) {
     ensureConversation(message.content);
-    messages_.append(message);
+
+    stutter::Message entry = message;
+    if (entry.id.isEmpty()) {
+        entry.id = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    }
+    if (entry.conversationId.isEmpty()) {
+        entry.conversationId = conversation_.id;
+    }
+    if (!entry.createdAt.isValid()) {
+        entry.createdAt = QDateTime::currentDateTimeUtc();
+    }
+
+    messages_.append(entry);
     conversation_.updatedAt = QDateTime::currentDateTimeUtc();
     if (messageRepository_) {
-        messageRepository_->save(message);
+        messageRepository_->save(entry);
     }
     if (conversationRepository_) {
         conversationRepository_->save(conversation_);
     }
-    emit messageAdded(message);
+    emit messageAdded(entry);
 }
 
 void ConversationService::setSummary(const QString& summary) {

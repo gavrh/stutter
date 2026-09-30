@@ -59,6 +59,7 @@ private:
     stutter::ProviderConfig providerConfig() const;
     stutter::Model selectedModel() const;
     QString assistantTitle() const;
+    static QString assistantTitle(const QString& modelName, const QString& effort);
     void connectProvider(Provider& provider);
     void handleEvent(const ProviderEvent& event);
     void handleFinished(const QString& requestId, const ChatResponse& response);
@@ -86,5 +87,7 @@ private:
     Provider* provider_ = nullptr;
     QString requestId_;
     QString streamedResponse_;
+    QString activeModelName_;
+    QString activeEffort_;
     bool cancellationRequested_ = false;
 };

@@ -5,5 +5,6 @@
     <file alias="prompts/summarize_history.md">prompts/summarize_history.md</file>
     <file alias="data/models.json">data/models.json</file>
     <file alias="migrations/001_initial.sql">migrations/001_initial.sql</file>
+    <file alias="migrations/002_message_model.sql">migrations/002_message_model.sql</file>
   </qresource>
 </RCC>
