@@ -171,10 +171,22 @@ void ChatController::clear() {
     widget_.setUsageText({});
 }
 
+void ChatController::updateUsageText() {
+    if (sessionUsage_.inputTokens == 0 && sessionUsage_.outputTokens == 0) {
+        widget_.setUsageText({});
+        return;
+    }
+    widget_.setUsageText(tr("%1 input / %2 output")
+        .arg(formatTokenCount(sessionUsage_.inputTokens))
+        .arg(formatTokenCount(sessionUsage_.outputTokens)));
+}
+
 void ChatController::renderConversation() {
     widget_.clearMessages();
-    sessionUsage_ = {};
-    widget_.setUsageText({});
+    const stutter::Conversation& conversation = conversations_.currentConversation();
+    sessionUsage_.inputTokens = conversation.inputTokens;
+    sessionUsage_.outputTokens = conversation.outputTokens;
+    updateUsageText();
     for (const stutter::Message& message : conversations_.messages()) {
         switch (message.role) {
         case stutter::MessageRole::User:
@@ -297,6 +309,7 @@ void ChatController::handleFinished(const QString& requestId, const ChatResponse
     const QString assistantText = stutter::stripToolBlocks(response.content);
     sessionUsage_.inputTokens += response.usage.inputTokens;
     sessionUsage_.outputTokens += response.usage.outputTokens;
+    conversations_.addUsage(response.usage.inputTokens, response.usage.outputTokens);
     if (provider_ == &codexProvider_) {
         if (runTextToolCall(response, assistantText)) return;
     } else if (runToolCalls(response, assistantText)) {
@@ -311,9 +324,7 @@ void ChatController::handleFinished(const QString& requestId, const ChatResponse
         assistant.effort = activeEffort_;
         conversations_.appendMessage(assistant);
     }
-    widget_.setUsageText(tr("%1 input / %2 output")
-        .arg(formatTokenCount(sessionUsage_.inputTokens))
-        .arg(formatTokenCount(sessionUsage_.outputTokens)));
+    updateUsageText();
     widget_.finishAssistantMessage();
     resetRequest();
 }

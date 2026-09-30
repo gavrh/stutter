@@ -10,6 +10,8 @@ struct Conversation {
     QString binaryId;
     QString title;
     QString summary;
+    qint64 inputTokens = 0;
+    qint64 outputTokens = 0;
     QDateTime createdAt;
     QDateTime updatedAt;
 

@@ -6,5 +6,6 @@
     <file alias="data/models.json">data/models.json</file>
     <file alias="migrations/001_initial.sql">migrations/001_initial.sql</file>
     <file alias="migrations/002_message_model.sql">migrations/002_message_model.sql</file>
+    <file alias="migrations/003_conversation_usage.sql">migrations/003_conversation_usage.sql</file>
   </qresource>
 </RCC>

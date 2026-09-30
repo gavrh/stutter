@@ -118,6 +118,19 @@ void ConversationService::setSummary(const QString& summary) {
     emit conversationChanged(conversation_);
 }
 
+void ConversationService::addUsage(qint64 inputTokens, qint64 outputTokens) {
+    if (!conversation_.isValid()) {
+        return;
+    }
+    conversation_.inputTokens += inputTokens;
+    conversation_.outputTokens += outputTokens;
+    conversation_.updatedAt = QDateTime::currentDateTimeUtc();
+    if (conversationRepository_) {
+        conversationRepository_->save(conversation_);
+    }
+    emit conversationChanged(conversation_);
+}
+
 void ConversationService::clear() {
     if (conversation_.isValid()) {
         if (messageRepository_) {

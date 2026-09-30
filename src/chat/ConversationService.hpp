@@ -36,6 +36,7 @@ public:
     stutter::Message appendMessage(stutter::MessageRole role, const QString& content);
     void appendMessage(const stutter::Message& message);
     void setSummary(const QString& summary);
+    void addUsage(qint64 inputTokens, qint64 outputTokens);
     void clear();
 
 signals:

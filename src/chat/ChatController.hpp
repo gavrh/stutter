@@ -60,6 +60,7 @@ private:
     stutter::Model selectedModel() const;
     QString assistantTitle() const;
     static QString assistantTitle(const QString& modelName, const QString& effort);
+    void updateUsageText();
     void connectProvider(Provider& provider);
     void handleEvent(const ProviderEvent& event);
     void handleFinished(const QString& requestId, const ChatResponse& response);

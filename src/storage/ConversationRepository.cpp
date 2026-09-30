@@ -8,7 +8,9 @@
 namespace stutter {
 
 const QString kSelectColumns =
-    QStringLiteral("id, binary_id, title, summary, created_at, updated_at");
+    QStringLiteral(
+        "id, binary_id, title, summary, created_at, updated_at, input_tokens, output_tokens"
+    );
 
 static stutter::Conversation readConversation(Statement& statement) {
     stutter::Conversation conversation;
@@ -18,6 +20,8 @@ static stutter::Conversation readConversation(Statement& statement) {
     conversation.summary = statement.text(3);
     conversation.createdAt = storage::fromStorage(statement.text(4));
     conversation.updatedAt = storage::fromStorage(statement.text(5));
+    conversation.inputTokens = statement.integer(6);
+    conversation.outputTokens = statement.integer(7);
     return conversation;
 }
 
@@ -72,11 +76,12 @@ bool ConversationRepository::save(const stutter::Conversation& conversation) {
     Statement statement(
         database_,
         QStringLiteral(
-            "INSERT INTO conversations(id, binary_id, title, summary, created_at, updated_at) "
-            "VALUES (?1, ?2, ?3, ?4, ?5, ?6) "
+            "INSERT INTO conversations(id, binary_id, title, summary, created_at, updated_at, input_tokens, output_tokens) "
+            "VALUES (?1, ?2, ?3, ?4, ?5, ?6, ?7, ?8) "
             "ON CONFLICT(id) DO UPDATE SET "
             "binary_id = excluded.binary_id, title = excluded.title, summary = excluded.summary, "
-            "updated_at = excluded.updated_at"
+            "updated_at = excluded.updated_at, input_tokens = excluded.input_tokens, "
+            "output_tokens = excluded.output_tokens"
         )
     );
     statement.bind(1, conversation.id);
@@ -85,6 +90,8 @@ bool ConversationRepository::save(const stutter::Conversation& conversation) {
     statement.bind(4, conversation.summary);
     statement.bind(5, createdAt);
     statement.bind(6, updatedAt);
+    statement.bind(7, conversation.inputTokens);
+    statement.bind(8, conversation.outputTokens);
     statement.next();
     return statement.error().isEmpty();
 }
