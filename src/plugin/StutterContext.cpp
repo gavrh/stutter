@@ -91,6 +91,10 @@ void StutterContext::updateAnalysisContext(MainWindow* mainWindow) {
         return;
     }
 
+    if (chatController_) {
+        chatController_->refreshConversation();
+    }
+
     const RVA address = cutterGateway_.reader().currentAddress();
     QString function = cutterGateway_.reader().functionName(address);
     if (function.isEmpty()) function = tr("No function");

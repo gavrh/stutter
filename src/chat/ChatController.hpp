@@ -48,6 +48,8 @@ public:
     );
     ~ChatController() override;
 
+    void refreshConversation();
+
 private:
     void submit(const QString& text);
     void stop();

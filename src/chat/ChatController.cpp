@@ -98,6 +98,12 @@ ChatController::ChatController(
 
 ChatController::~ChatController() = default;
 
+void ChatController::refreshConversation() {
+    if (binaryProvider_) {
+        conversations_.setBinary(binaryProvider_());
+    }
+}
+
 void ChatController::submit(const QString& text) {
     if (!requestId_.isEmpty()) return;
     if (!promptBuilder_.isValid()) {
@@ -105,9 +111,7 @@ void ChatController::submit(const QString& text) {
         return;
     }
     if (!selectProvider()) return;
-    if (binaryProvider_) {
-        conversations_.setBinary(binaryProvider_());
-    }
+    refreshConversation();
     conversations_.appendMessage(stutter::MessageRole::User, text);
     widget_.addUserMessage(text);
 

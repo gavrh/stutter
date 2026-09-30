@@ -23,7 +23,9 @@ void ConversationService::setBinary(const stutter::BinaryIdentity& identity) {
     if (!identity.isResolvable()) {
         return;
     }
-    if (binary_.isResolvable() && binary_.path == identity.path && binary_.sha256 == identity.sha256) {
+    const bool samePath = !identity.path.isEmpty() && binary_.path == identity.path;
+    const bool sameHash = !identity.sha256.isEmpty() && binary_.sha256 == identity.sha256;
+    if (binary_.isResolvable() && (samePath || sameHash)) {
         return;
     }
 
