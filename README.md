@@ -4,9 +4,6 @@ Stutter is an AI assistant built directly into [Cutter](https://cutter.re) and d
 
 ![Stutter in Cutter](assets/preview.gif)
 
-> [!NOTE]
-> Stutter is ready for general use, but it is still under active development. Features may change or break without notice.
-
 ## Features
 
 - [x] In-Cutter chat with streamed responses
