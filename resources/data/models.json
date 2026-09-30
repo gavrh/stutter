@@ -29,8 +29,8 @@
                     "default_effort": "medium"
                 },
                 {
-                    "id": "gpt-6-sol",
-                    "name": "GPT-6 Sol",
+                    "id": "gpt-6.1-sol",
+                    "name": "GPT-6.1 Sol",
                     "context_window": 1050000,
                     "max_output_tokens": 128000,
                     "capabilities": [
@@ -41,7 +41,6 @@
                         "tools"
                     ],
                     "efforts": [
-                        "none",
                         "low",
                         "medium",
                         "high",
@@ -71,6 +70,79 @@
                         "max"
                     ],
                     "default_effort": "medium"
+                }
+            ]
+        },
+        {
+            "id": "codex",
+            "name": "Codex (ChatGPT)",
+            "default_model": "gpt-6-astra",
+            "default_endpoint": "",
+            "models": [
+                {
+                    "id": "gpt-6-astra",
+                    "name": "GPT-6 Astra",
+                    "context_window": 1050000,
+                    "max_output_tokens": 128000,
+                    "capabilities": [
+                        "text",
+                        "vision",
+                        "reasoning",
+                        "streaming",
+                        "tools"
+                    ],
+                    "efforts": [
+                        "low",
+                        "medium",
+                        "high",
+                        "xhigh",
+                        "max",
+                        "ultra"
+                    ],
+                    "default_effort": "low"
+                },
+                {
+                    "id": "gpt-6.1-sol",
+                    "name": "GPT-6.1 Sol",
+                    "context_window": 1050000,
+                    "max_output_tokens": 128000,
+                    "capabilities": [
+                        "text",
+                        "vision",
+                        "reasoning",
+                        "streaming",
+                        "tools"
+                    ],
+                    "efforts": [
+                        "low",
+                        "medium",
+                        "high",
+                        "xhigh",
+                        "max",
+                        "ultra"
+                    ],
+                    "default_effort": "medium"
+                },
+                {
+                    "id": "gpt-6-luna",
+                    "name": "GPT-6 Luna",
+                    "context_window": 1050000,
+                    "max_output_tokens": 128000,
+                    "capabilities": [
+                        "text",
+                        "vision",
+                        "reasoning",
+                        "streaming",
+                        "tools"
+                    ],
+                    "efforts": [
+                        "low",
+                        "medium",
+                        "high",
+                        "xhigh",
+                        "max"
+                    ],
+                    "default_effort": "high"
                 }
             ]
         },
@@ -123,8 +195,8 @@
                     "default_effort": "medium"
                 },
                 {
-                    "id": "claude-sonnet-5",
-                    "name": "Claude Sonnet 5",
+                    "id": "claude-sonnet-5-5",
+                    "name": "Claude Sonnet 5.5",
                     "context_window": 1000000,
                     "max_output_tokens": 128000,
                     "capabilities": [
@@ -157,79 +229,6 @@
                     ],
                     "efforts": [],
                     "default_effort": ""
-                }
-            ]
-        },
-        {
-            "id": "codex",
-            "name": "Codex (ChatGPT)",
-            "default_model": "gpt-6-astra",
-            "default_endpoint": "",
-            "models": [
-                {
-                    "id": "gpt-6-astra",
-                    "name": "GPT-6 Astra",
-                    "context_window": 1050000,
-                    "max_output_tokens": 128000,
-                    "capabilities": [
-                        "text",
-                        "vision",
-                        "reasoning",
-                        "streaming",
-                        "tools"
-                    ],
-                    "efforts": [
-                        "low",
-                        "medium",
-                        "high",
-                        "xhigh",
-                        "max",
-                        "ultra"
-                    ],
-                    "default_effort": "low"
-                },
-                {
-                    "id": "gpt-6-sol",
-                    "name": "GPT-6 Sol",
-                    "context_window": 1050000,
-                    "max_output_tokens": 128000,
-                    "capabilities": [
-                        "text",
-                        "vision",
-                        "reasoning",
-                        "streaming",
-                        "tools"
-                    ],
-                    "efforts": [
-                        "low",
-                        "medium",
-                        "high",
-                        "xhigh",
-                        "max",
-                        "ultra"
-                    ],
-                    "default_effort": "medium"
-                },
-                {
-                    "id": "gpt-6-luna",
-                    "name": "GPT-6 Luna",
-                    "context_window": 1050000,
-                    "max_output_tokens": 128000,
-                    "capabilities": [
-                        "text",
-                        "vision",
-                        "reasoning",
-                        "streaming",
-                        "tools"
-                    ],
-                    "efforts": [
-                        "low",
-                        "medium",
-                        "high",
-                        "xhigh",
-                        "max"
-                    ],
-                    "default_effort": "high"
                 }
             ]
         },
@@ -346,20 +345,6 @@
                     "default_effort": ""
                 },
                 {
-                    "id": "inclusionai/ling-3.0-flash-fin:free",
-                    "name": "inclusionAI: Ling 3.0 Flash Fin (free)",
-                    "context_window": 262144,
-                    "max_output_tokens": 8192,
-                    "capabilities": [
-                        "text",
-                        "streaming",
-                        "reasoning",
-                        "tools"
-                    ],
-                    "efforts": [],
-                    "default_effort": ""
-                },
-                {
                     "id": "inclusionai/ling-3.0-flash-sante:free",
                     "name": "inclusionAI: Ling 3.0 Flash Sante (free)",
                     "context_window": 262144,
@@ -374,21 +359,6 @@
                     "default_effort": ""
                 },
                 {
-                    "id": "inclusionai/ling-3.0-flash-vl:free",
-                    "name": "inclusionAI: Ling 3.0 Flash VL (free)",
-                    "context_window": 262144,
-                    "max_output_tokens": 8192,
-                    "capabilities": [
-                        "text",
-                        "streaming",
-                        "vision",
-                        "reasoning",
-                        "tools"
-                    ],
-                    "efforts": [],
-                    "default_effort": ""
-                },
-                {
                     "id": "liquid/lfm-2.5-2.6b:free",
                     "name": "LiquidAI: LFM2.5-2.6B (free)",
                     "context_window": 65536,
@@ -396,36 +366,6 @@
                     "capabilities": [
                         "text",
                         "streaming",
-                        "reasoning",
-                        "tools"
-                    ],
-                    "efforts": [],
-                    "default_effort": ""
-                },
-                {
-                    "id": "nex-agi/nex-n2.5-mini:free",
-                    "name": "Nex AGI: Nex-N2.5-Mini (free)",
-                    "context_window": 262144,
-                    "max_output_tokens": 8192,
-                    "capabilities": [
-                        "text",
-                        "streaming",
-                        "vision",
-                        "reasoning",
-                        "tools"
-                    ],
-                    "efforts": [],
-                    "default_effort": ""
-                },
-                {
-                    "id": "nex-agi/nex-n2.5-pro:free",
-                    "name": "Nex AGI: Nex-N2.5-Pro (free)",
-                    "context_window": 262144,
-                    "max_output_tokens": 8192,
-                    "capabilities": [
-                        "text",
-                        "streaming",
-                        "vision",
                         "reasoning",
                         "tools"
                     ],
@@ -548,14 +488,16 @@
                     "default_effort": ""
                 },
                 {
-                    "id": "z-ai/glm-5.2:free",
-                    "name": "Z.ai: GLM 5.2 (free)",
-                    "context_window": 32768,
+                    "id": "qwen/qwen3.8-27b:free",
+                    "name": "Qwen: Qwen3.8 27B (free)",
+                    "context_window": 262144,
                     "max_output_tokens": 8192,
                     "capabilities": [
                         "text",
+                        "vision",
+                        "reasoning",
                         "streaming",
-                        "reasoning"
+                        "tools"
                     ],
                     "efforts": [],
                     "default_effort": ""
