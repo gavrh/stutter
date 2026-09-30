@@ -119,6 +119,14 @@ void ConversationService::setSummary(const QString& summary) {
 }
 
 void ConversationService::clear() {
+    if (conversation_.isValid()) {
+        if (messageRepository_) {
+            messageRepository_->removeForConversation(conversation_.id);
+        }
+        if (conversationRepository_) {
+            conversationRepository_->remove(conversation_.id);
+        }
+    }
     conversation_ = {};
     messages_.clear();
     emit conversationCleared();
