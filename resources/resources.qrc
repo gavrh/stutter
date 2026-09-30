@@ -4,5 +4,6 @@
     <file alias="prompts/reverse_engineer.md">prompts/reverse_engineer.md</file>
     <file alias="prompts/summarize_history.md">prompts/summarize_history.md</file>
     <file alias="data/models.json">data/models.json</file>
+    <file alias="migrations/001_initial.sql">migrations/001_initial.sql</file>
   </qresource>
 </RCC>
