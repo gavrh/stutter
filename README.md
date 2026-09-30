@@ -4,8 +4,8 @@ Stutter is an AI assistant built directly into [Cutter](https://cutter.re) and d
 
 ![Stutter in Cutter](assets/preview.gif)
 
-> [!WARNING]
-> Stutter is under active development and is not ready for general use. Features are incomplete and may change or break without notice.
+> [!NOTE]
+> Stutter is ready for general use, but it is still under active development. Features may change or break without notice.
 
 ## Features
 
@@ -19,7 +19,7 @@ Stutter is an AI assistant built directly into [Cutter](https://cutter.re) and d
 - [x] Inline activity for tool and operation steps
 - [x] Permission controls for state-changing actions
 - [x] Context management and token usage for long conversations
-- [ ] Persistence for settings, keys, and conversations
+- [x] Persistence for settings, keys, and conversations
 - [ ] Web search and fetch tools
 - [ ] Per-call approval for changes
 - [ ] Conversation history and session tracking
