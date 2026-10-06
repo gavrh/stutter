@@ -41,4 +41,4 @@ cmake --install build
 
 ## License
 
-Stutter is licensed under the GNU General Public License v3.0.
+Stutter is licensed under the GNU General Public License v3.0
