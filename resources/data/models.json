@@ -4,12 +4,12 @@
         {
             "id": "openai",
             "name": "OpenAI",
-            "default_model": "gpt-6-astra",
+            "default_model": "gpt-6.2-astra",
             "default_endpoint": "https://api.openai.com/",
             "models": [
                 {
-                    "id": "gpt-6-astra",
-                    "name": "GPT-6 Astra",
+                    "id": "gpt-6.2-astra",
+                    "name": "GPT-6.2 Astra",
                     "context_window": 1050000,
                     "max_output_tokens": 128000,
                     "capabilities": [
@@ -29,8 +29,8 @@
                     "default_effort": "medium"
                 },
                 {
-                    "id": "gpt-6.1-sol",
-                    "name": "GPT-6.1 Sol",
+                    "id": "gpt-6.2-sol",
+                    "name": "GPT-6.2 Sol",
                     "context_window": 1050000,
                     "max_output_tokens": 128000,
                     "capabilities": [
@@ -98,12 +98,12 @@
         {
             "id": "codex",
             "name": "Codex (ChatGPT)",
-            "default_model": "gpt-6-astra",
+            "default_model": "gpt-6.2-astra",
             "default_endpoint": "",
             "models": [
                 {
-                    "id": "gpt-6-astra",
-                    "name": "GPT-6 Astra",
+                    "id": "gpt-6.2-astra",
+                    "name": "GPT-6.2 Astra",
                     "context_window": 1050000,
                     "max_output_tokens": 128000,
                     "capabilities": [
@@ -124,8 +124,8 @@
                     "default_effort": "low"
                 },
                 {
-                    "id": "gpt-6.1-sol",
-                    "name": "GPT-6.1 Sol",
+                    "id": "gpt-6.2-sol",
+                    "name": "GPT-6.2 Sol",
                     "context_window": 1050000,
                     "max_output_tokens": 128000,
                     "capabilities": [
@@ -193,12 +193,12 @@
         {
             "id": "anthropic",
             "name": "Anthropic",
-            "default_model": "claude-fable-5-1",
+            "default_model": "claude-fable-5-2",
             "default_endpoint": "https://api.anthropic.com/",
             "models": [
                 {
-                    "id": "claude-fable-5-1",
-                    "name": "Claude Fable 5.1",
+                    "id": "claude-fable-5-2",
+                    "name": "Claude Fable 5.2",
                     "context_window": 1000000,
                     "max_output_tokens": 128000,
                     "capabilities": [
@@ -332,33 +332,18 @@
         {
             "id": "openrouter",
             "name": "Free (OpenRouter)",
-            "default_model": "cohere/north-mini-code:free",
+            "default_model": "baidu/ernie-5.5-flash-preview:free",
             "default_endpoint": "https://openrouter.ai/api/v1/chat/completions",
             "models": [
                 {
-                    "id": "cohere/north-mini-code:free",
-                    "name": "Cohere: North Mini Code (free)",
-                    "context_window": 256000,
-                    "max_output_tokens": 8192,
+                    "id": "baidu/ernie-5.5-flash-preview:free",
+                    "name": "Baidu: ERNIE-5.5-Flash-Preview (free)",
+                    "context_window": 1024000,
+                    "max_output_tokens": 921600,
                     "capabilities": [
                         "text",
-                        "streaming",
                         "reasoning",
-                        "tools"
-                    ],
-                    "efforts": [],
-                    "default_effort": ""
-                },
-                {
-                    "id": "dots-studio/dots-3-note-preview:free",
-                    "name": "Dots Studio: Dots3-Note Preview (free)",
-                    "context_window": 512000,
-                    "max_output_tokens": 8192,
-                    "capabilities": [
-                        "text",
                         "streaming",
-                        "vision",
-                        "reasoning",
                         "tools"
                     ],
                     "efforts": [],
@@ -395,14 +380,29 @@
                     "default_effort": ""
                 },
                 {
-                    "id": "liquid/lfm-2.5-2.6b:free",
-                    "name": "LiquidAI: LFM2.5-2.6B (free)",
-                    "context_window": 65536,
+                    "id": "inclusionai/ling-3.2-flash:free",
+                    "name": "inclusionAI: Ling 3.2 Flash (free)",
+                    "context_window": 1048576,
+                    "max_output_tokens": 262144,
+                    "capabilities": [
+                        "text",
+                        "vision",
+                        "reasoning",
+                        "streaming",
+                        "tools"
+                    ],
+                    "efforts": [],
+                    "default_effort": ""
+                },
+                {
+                    "id": "liquid/lfm-3-1.7b:free",
+                    "name": "LiquidAI: LFM3-1.7B (free)",
+                    "context_window": 262144,
                     "max_output_tokens": 8192,
                     "capabilities": [
                         "text",
-                        "streaming",
                         "reasoning",
+                        "streaming",
                         "tools"
                     ],
                     "efforts": [],
@@ -467,28 +467,15 @@
                     "default_effort": ""
                 },
                 {
-                    "id": "poolside/laguna-s-2.1:free",
-                    "name": "Poolside: Laguna S 2.1 (free)",
-                    "context_window": 262144,
-                    "max_output_tokens": 8192,
+                    "id": "particle-ai/particle-1:free",
+                    "name": "Particle AI: Particle-1 (free)",
+                    "context_window": 1048576,
+                    "max_output_tokens": 131072,
                     "capabilities": [
                         "text",
-                        "streaming",
+                        "vision",
                         "reasoning",
-                        "tools"
-                    ],
-                    "efforts": [],
-                    "default_effort": ""
-                },
-                {
-                    "id": "poolside/laguna-xs-2.1:free",
-                    "name": "Poolside: Laguna XS 2.1 (free)",
-                    "context_window": 262144,
-                    "max_output_tokens": 8192,
-                    "capabilities": [
-                        "text",
                         "streaming",
-                        "reasoning",
                         "tools"
                     ],
                     "efforts": [],
@@ -497,50 +484,6 @@
                 {
                     "id": "recursive/flint-v1.0:free",
                     "name": "Recursive: Flint (free)",
-                    "context_window": 262144,
-                    "max_output_tokens": 235929,
-                    "capabilities": [
-                        "text",
-                        "reasoning",
-                        "streaming",
-                        "tools"
-                    ],
-                    "efforts": [],
-                    "default_effort": ""
-                },
-                {
-                    "id": "thinkingmachines/inkling-small:free",
-                    "name": "Thinking Machines: Inkling Small (free)",
-                    "context_window": 1048576,
-                    "max_output_tokens": 8192,
-                    "capabilities": [
-                        "text",
-                        "streaming",
-                        "vision",
-                        "reasoning",
-                        "tools"
-                    ],
-                    "efforts": [],
-                    "default_effort": ""
-                },
-                {
-                    "id": "thinkingmachines/inkling:free",
-                    "name": "Thinking Machines: Inkling (free)",
-                    "context_window": 1048576,
-                    "max_output_tokens": 8192,
-                    "capabilities": [
-                        "text",
-                        "streaming",
-                        "vision",
-                        "reasoning",
-                        "tools"
-                    ],
-                    "efforts": [],
-                    "default_effort": ""
-                },
-                {
-                    "id": "xingchen-agi/xing4.0-29b-a4b:free",
-                    "name": "XingChen: Xing4.0 29B A4B (free)",
                     "context_window": 262144,
                     "max_output_tokens": 235929,
                     "capabilities": [
